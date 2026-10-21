@@ -24,7 +24,7 @@ Four single-file HTML tools and one Excel template for people who have to produc
 | Tool | Pick it when | What it produces | What it refuses to do |
 |---|---|---|---|
 | **[GSPR matrix](tools/gspr-matrix.html)** | A reviewer asks "how do you meet this requirement?" and you cannot produce a cross-reference | A 23-row matrix with applicability, conclusion, method, standard plus clause, and evidence location. Any "not applicable" without a written reason is flagged | Write the requirement text. You supply it from EUR-Lex |
-| **[Consistency check](tools/consistency-check.html)** | Two device lists disagree and you do not know which is right | Up to six sets: only here, only there, value mismatch, non-standard risk-class notation, duplicate keys, and Basic UDI-DI singletons (informational) | Decide which side is correct |
+| **[Consistency check](tools/consistency-check.html)** | Two device lists disagree and you do not know which is right | Up to five findings — only here, only there, value mismatch, non-standard risk-class notation, duplicate keys — plus a Basic UDI-DI distribution summary that is reported separately because it is informational | Decide which side is correct |
 | **[Deficiency triage](tools/deficiency-triage.html)** | A deficiency letter arrives and you cannot afford to miss an item | One row per item, **keeping the original item number**, with a suggested category, severity, and who owes which evidence | Write the response. That needs a technical judgement and a signature |
 | **[Glossary](tools/glossary.html)** | A translated term reads fine but you are not sure it is right | 98 Chinese–English pairs across 7 groups, with 13 marked as high-risk — the ones that read plausibly and cause rework | Certify a translation |
 
@@ -34,7 +34,7 @@ The consistency check and deficiency triage keep the original row next to each f
 
 **`templates/MDR-GSPR对照表-v1.2.xlsx`** — the same GSPR matrix as a workbook, for people who have to circulate a file rather than open a browser tab.
 
-Five sheets: notes, the 23-row matrix, a self-check count, five worked examples, and a file-control/sign-off page. Fifteen columns, three of them dropdown-constrained. Choosing "not applicable" without writing a reason turns the cell red; a point 9 row marked applicable turns yellow until you confirm Annex XVI does not apply.
+Five sheets: notes, the 23-row matrix, a self-check count, five worked examples, and a file-control/sign-off page. Fourteen columns, three of them dropdown-constrained. Choosing "not applicable" without writing a reason turns the cell red; a point 9 row marked applicable turns yellow until you confirm Annex XVI does not apply.
 
 Two things it does that a paper checklist cannot:
 
@@ -62,7 +62,12 @@ Not preferences — requirements. If a change breaks one of these, it does not g
 
 Pre-alpha, and honest about it.
 
-- The four tools work. `node tests/run.js` checks the design constraints listed **above**; `node tests/rules.js` asserts on rule behaviour — what each rule matches and what it refuses to match.
+- The four tools work. Four test suites run on every push:
+  - `node tests/run.js` — checks the design constraints listed **above** and every number this file states about the shipped files.
+  - `node tests/rules.js` — asserts on rule behaviour: what each rule matches and what it refuses to match.
+  - `node tests/e2e.js` — loads each tool in a real DOM (jsdom), clicks the real buttons, reads the real output, and reads exported files back out of their Blob to assert on the bytes. This is the "outsider just opened the file" path, not the "maintainer runs a unit test" path.
+  - `python tests/xlsx.py` — does the same for the workbook without needing Excel.
+- Two of these are mutation-checked: deleting the CSV-injection guard from either tool makes `e2e.js` fail. A test that cannot fail is not a test, and this repository was caught with one.
 - Constraint checks are automated. Rule-level assertions are partial and are added as rules change — a green run means a tool is still shippable, not that it is still correct.
 - The tools have been exercised on constructed sample data, not yet on a complete commercial engagement.
 - There are no releases, no community, and no roadmap beyond the issues we open.
@@ -72,7 +77,9 @@ If you are evaluating whether to trust this: read the source. One file per tool,
 
 ## Using it
 
-Fastest path: download the ZIP, unzip, double-click any `.html` in `tools/`. No command line and no Node required.
+Fastest path: `Code` → **Download ZIP**, unzip, double-click any `.html` in `tools/`. No command line and no Node required. The Excel template is in `templates/` inside the same archive.
+
+If you only want the workbook, open it directly: [`templates/MDR-GSPR对照表-v1.2.xlsx`](templates/MDR-GSPR对照表-v1.2.xlsx) → *Download raw file*.
 
 From a terminal:
 
@@ -90,9 +97,11 @@ Start-Process tools\gspr-matrix.html
 xdg-open tools/gspr-matrix.html
 ```
 
-**First time? Open the GSPR matrix and click "载入示例（3 条）" / "Load example (3 rows)".** One row is green with evidence filled in, one is amber as a real gap, one is red because "not applicable" was left without a reason. Clear it before starting your own matrix.
+**First time? Open the GSPR matrix and click `载入示例（3 条）`** (the third button in the toolbar; it means *load example, 3 rows*). One row is green with evidence filled in, one is amber as a real gap, one is red because "not applicable" was left without a reason. Clear it before starting your own matrix.
 
-The **consistency check** and **deficiency triage** tools have a "load example" button that fills in constructed sample data. Each shows a persistent note listing the deliberate errors and which result table each one should appear in. The GSPR matrix has one too, filling three rows including one "not applicable" left without a reason, so you can see how that is flagged.
+> **The interface is Chinese.** The tool labels, field names and exported CSV headers are in Chinese because the working language of the people who use it is Chinese. The documentation here is in English so that a non-Chinese reviewer can audit what the tools do. The regulatory identifiers in the data (ISO and IEC standard numbers, `Class IIa`, `Basic UDI-DI`, `Annex I`) are unchanged and language-neutral.
+
+The **consistency check** (`载入示例（含 4 处故意错误）`) and **deficiency triage** (`载入示例`) tools each have a load-example button that fills in constructed sample data. Each shows a persistent note listing the deliberate errors and which result table each one should appear in. The GSPR matrix has one too, filling three rows including one "not applicable" left without a reason, so you can see how that is flagged.
 
 ## Contributing
 
@@ -122,7 +131,7 @@ Every rule in this repository is either something a regulation says or something
 | Transitional deadlines and the twelve excepted device types | Article 120(3a), as amended by (EU) 2023/607 | Regulation |
 | PSUR update frequency | Article 86(1) | Regulation |
 | **Original item number preserved on every row** | — | **Our convention** (auditability) |
-| **The ten deficiency categories** | — | **Our convention**, not a notified body checklist |
+| **The eleven deficiency categories** | — | **Our convention**, not a notified body checklist |
 | **The 13 high-risk terms** | — | **Our convention** (rework experience) |
 | **Not using the device name to infer a risk class** | — | **Our convention** (the name does not determine it) |
 

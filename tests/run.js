@@ -124,6 +124,81 @@ for (const doc of DOCS) {
 }
 
 console.log('');
+
+// ---------------------------------------------------------------- claims
+// Every number the README states about the shipped files is a claim a reader
+// will check. Three of them were wrong at once (15 columns that were 14, ten
+// categories that were eleven, six result sets that were five), which is the
+// failure mode this section exists to catch: prose drifting away from bytes.
+//
+// Only claims that can be counted from the files are asserted here. Anything
+// needing Excel to evaluate lives in tests/xlsx.js.
+console.log('README claims vs shipped files');
+{
+  const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  const tool = (n) => fs.readFileSync(path.join(TOOL_DIR, n), 'utf8');
+
+  const glossaryN = (tool('glossary.html').match(/<td class="en">/g) || []).length;
+  report('README.md', 'claims:glossary-count', glossaryN === 98, `counted ${glossaryN}, README says 98`);
+  report('README.md', 'claims:glossary-trap-count',
+    (tool('glossary.html').match(/class="trap"/g) || []).length === 13,
+    'high-risk marker count is not 13');
+  console.log(`  glossary terms                                              ${String(glossaryN).padStart(3)}`);
+
+  // "Eleven deficiency categories" (README Sources + CONTRIBUTING both say it)
+  const catsSrc = tool('deficiency-triage.html').match(/var CATS=\[([^\]]*)\]/);
+  const cats = catsSrc ? catsSrc[1].split(',').filter((s) => s.trim()).length : -1;
+  const saysEleven = /eleven deficiency categories/i.test(readme) &&
+    /eleven categories/i.test(fs.readFileSync(path.join(ROOT, 'CONTRIBUTING.md'), 'utf8'));
+  report('README.md', 'claims:category-count', cats === 11 && saysEleven,
+    `CATS has ${cats} entries, docs claim eleven (README+CONTRIBUTING must both say it)`);
+  console.log(`  deficiency categories                                       ${String(cats).padStart(3)}`);
+
+  // The on-screen reference table must have one row per substantive category.
+  // CATS carries a trailing "其他" fallback, so the table is CATS.length - 1.
+  // These drifted apart once: the heading said "eleven" over a ten-row table.
+  const refTbl = tool('deficiency-triage.html').match(/<h3>归类框架[^<]*<\/h3>[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/);
+  const refRows = refTbl ? (refTbl[1].match(/<tr>/g) || []).length : -1;
+  report('deficiency-triage.html', 'reference-table:row-count', refRows === cats - 1,
+    `reference table lists ${refRows} types but CATS has ${cats} (expected ${cats - 1} + fallback)`);
+  console.log(`  reference-table rows                                        ${String(refRows).padStart(3)}`);
+
+  // Number of finding tables in the consistency tool. "Up to five" in README.
+  const tables = (tool('consistency-check.html').match(/html\+=tbl\('/g) || []).length;
+  report('README.md', 'claims:consistency-sets', tables <= 5 && /Up to five findings/.test(readme),
+    `tool renders ${tables} finding tables, README must say "Up to five findings"`);
+  console.log(`  consistency finding tables                                  ${String(tables).padStart(3)}`);
+
+  // 23 rows / 3 chapters, stated in README
+  const rows = (tool('gspr-matrix.html').match(/\{no:\d+,ch:/g) || []).length;
+  report('README.md', 'claims:gspr-rows', rows === 23, `found ${rows} rows, README says 23`);
+  console.log(`  GSPR rows                                                   ${String(rows).padStart(3)}`);
+
+  // Column count of the workbook header, counted without Excel.
+  // The xlsx is a zip; sharedStrings holds the header labels. Any drift from
+  // the README's stated column count should fail here.
+  const xlsxClaim = readme.match(/(\w+teen|Fourteen|Fifteen|\d+) columns/);
+  report('README.md', 'claims:xlsx-columns-present',
+    !!readme.match(/(Fourteen|Fifteen|\d+) columns, three of them dropdown-constrained/),
+    'README should state the column count and the dropdown count');
+  console.log(`  workbook column claim                                       "${xlsxClaim ? xlsxClaim[0] : 'MISSING'}"`);
+
+  // The .gitignore ignores *.xlsx to keep client deliverables out, which would
+  // also silently swallow the shipped template. It is re-included by a negation
+  // rule; if that rule is dropped, a fresh clone has no template and every link
+  // to it 404s while nothing in the repo looks wrong.
+  const gitignore = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
+  report('.gitignore', 'template-not-ignored',
+    /!\s*templates\/\*\.xlsx/.test(gitignore),
+    'the negation rule that keeps templates/*.xlsx tracked is missing');
+  console.log(`  gitignore keeps templates tracked                           ${/!\s*templates\/\*\.xlsx/.test(gitignore) ? 'yes' : 'NO'}`);
+
+  // A suite that fails writes tests/e2e-findings.json. It must stay untracked.
+  report('.gitignore', 'test-artefact-ignored',
+    /tests\/e2e-findings\.json/.test(gitignore),
+    'test output would be committable');
+  console.log(`  gitignore excludes test artefacts                           ${/tests\/e2e-findings\.json/.test(gitignore) ? 'yes' : 'NO'}`);
+}
 if (failures === 0) {
   console.log(`PASS  ${checks} checks`);
   process.exit(0);

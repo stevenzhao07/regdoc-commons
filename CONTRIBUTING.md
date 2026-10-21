@@ -17,7 +17,7 @@ Small, self-contained, and each one has a test you can point at:
 
 Not another framework. The most valuable contributions here are domain ones:
 
-- **Someone who has been through a notified body deficiency letter** and can tell us which of our ten categories is wrong, missing, or misleading.
+- **Someone who has been through a notified body deficiency letter** and can tell us which of our eleven categories is wrong, missing, or misleading.
 - **Someone who translates IFU or technical documentation professionally** and can point at a terminology mapping that will cause rework.
 - **Someone at a manufacturer** who can say "this column is useless to me, I would never fill it in".
 - **Bug reports from real data.** Paste a redacted sample, describe what the tool did, describe what it should have done.
@@ -54,14 +54,22 @@ If a change requires a dependency, that is a design discussion, not a pull reque
 
 Open the file in a browser. There is nothing to install.
 
-To run both:
+To run all four:
 
 ```bash
-node tests/run.js     # design constraints, file integrity, documentation links
-node tests/rules.js   # rule-level assertions, one sandbox per tool
+node tests/run.js               # design constraints, file integrity, documentation links, README claims
+node tests/rules.js             # rule-level assertions, one sandbox per tool
+NODE_PATH=$(npm root -g) node tests/e2e.js   # opens each tool in a real DOM and clicks the buttons (needs jsdom)
+pip install openpyxl && python tests/xlsx.py # workbook structure, sheet count, dropdowns (needs openpyxl)
 ```
 
-`tests/run.js` verifies the three design constraints above, file integrity, and that every relative link in the documentation resolves. It does **not** test behaviour — a green run means the tools are still shippable, not that they are still correct.
+Current counts, so you can tell a regression from a clean run: 52 constraint checks, 44 rule assertions, 36 end-to-end checks, 13 workbook checks. All four jobs run on every push in `.github/workflows/checks.yml`.
+
+`tests/run.js` verifies the three design constraints above, file integrity, that every relative link in the documentation resolves, and that **every number the README states about the shipped files is true** — term count, category count, finding-table count, requirement count, column count. That last part is not pedantry: three of those numbers were wrong at the same time, and a reader who catches one stops trusting the rest.
+
+`tests/e2e.js` opens each tool in a real DOM and clicks the real buttons — the path an outsider actually takes. It is the only suite that would have caught a save that silently did not restore into the form, a footnote renumbered as item 1, or an export whose header disagreed with the documentation. It needs `jsdom`, which is why it lives in its own CI job rather than in `tests/run.js`.
+
+It also reads the exported file back out of its Blob and asserts on the bytes, which is the only way to prove the CSV-injection guard actually fires. That check was once written as an async function `check()` did not await, with a `blobText()` defined twice and a `process.exit(0)` that killed pending microtasks: it reported green for weeks while never reading a single byte, and stayed green after the guard was deleted from the tool. Both halves are now fixed — the runner awaits async assertions and uses `process.exitCode`, and the assertion fails if it cannot read the bytes back. If you add an async check, return the Promise; the runner will wait.
 
 `tests/rules.js` does test behaviour: it pulls each rule out of the tool and asserts on what it matches **and what it refuses to match** — that a bare year is not read as an item number, that `4.1` is not re-read as `1`, that an unnumbered preamble is kept rather than dropped. When you change a rule, add the case that would have caught the bug you just fixed. A test that has never failed has not been tested.
 

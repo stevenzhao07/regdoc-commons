@@ -1,8 +1,16 @@
 # Exported results are client data. They must never be committed.
 *.csv
-*.xlsx
 *.xls
 *.pdf
+
+# Excel files are ignored by default because most .xlsx in a working copy are
+# client deliverables. The shipped template is the one exception and must stay
+# tracked, or a fresh clone arrives without it and every link to it breaks.
+*.xlsx
+!templates/*.xlsx
+
+# Test artefacts written only when a suite fails.
+tests/e2e-findings.json
 
 # OS noise
 .DS_Store

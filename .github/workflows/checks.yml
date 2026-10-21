@@ -9,10 +9,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Design constraints and documentation links
+
+      - name: Design constraints, documentation links, README claims
         run: node tests/run.js
+
       - name: Rule assertions
         run: node tests/rules.js
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Workbook structure
+        run: |
+          python -m pip install --quiet openpyxl
+          python tests/xlsx.py
+
+  # End-to-end: opens each tool in a real DOM, clicks the real buttons, reads
+  # the real output. Kept in its own job because it needs jsdom, and would
+  # otherwise make the constraint check slow to report.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install jsdom
+        run: npm install --no-save --no-audit --no-fund jsdom
+      - name: End-to-end
+        run: node tests/e2e.js

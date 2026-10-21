@@ -91,7 +91,7 @@ footer{padding:28px 0 54px;color:var(--soft);font-size:12px;line-height:1.9;bord
     </p>
     <div class="warnbar">
       <b>条款原文不随本工具分发，也不会自动下载。</b>你可以把 EUR-Lex 官方文本（Regulation (EU) 2017/745, Annex I）的原文粘到每条的「条款原文」格里，方便一条条对着写；不粘也能用，这一格不参与任何自动判定。凭记忆写法规原文，比不做更危险。
-      第 10–22 条的英文为官方条款主题的要点摘写（非逐字引用）；第 1–9 条与第 23 条为速览主题。<b>第 9 条仅适用于附录 XVI 产品</b>（无预期医疗用途的产品）——常规器械应在该条标注「不适用」并写一行理由，而不是跳过。
+      第 10–23 条的英文为 MDR 附录 I 官方节标题。第 1–9 条在法规原文中<b>本来就没有条标题</b>，凡标 <code>[editorial]</code> 的是本工具自拟的编辑性主题名——它不是法规文字，不要引用为条款标题。<b>第 9 条不是一条独立要求</b>：原文规定的是，对附录 XVI 产品，第 1 条与第 8 条应理解为「使用时完全不存在风险，或风险不超过与高水平健康保护相一致的最大可接受风险」。常规器械在该条标「不适用」并写一行理由即可。
     </div>
   </div>
 </header>
@@ -146,28 +146,28 @@ footer{padding:28px 0 54px;color:var(--soft);font-size:12px;line-height:1.9;bord
 <script>
 (function(){
   var DATA=[
-    {no:1,ch:'I',zh:'安全与性能',en:'Safety and performance',hint:'全适用'},
-    {no:2,ch:'I',zh:'风险降至尽可能低',en:'Reduce risks as far as possible',hint:'全适用'},
-    {no:3,ch:'I',zh:'风险管理体系',en:'Risk management system',hint:'全适用'},
-    {no:4,ch:'I',zh:'风险控制措施',en:'Risk control measures',hint:'全适用'},
-    {no:5,ch:'I',zh:'使用错误的风险',en:'Risks related to use error',hint:'全适用'},
-    {no:6,ch:'I',zh:'使用寿命内的性能',en:'Performance over device lifetime',hint:'全适用'},
-    {no:7,ch:'I',zh:'运输与储存',en:'Transport and storage',hint:'全适用'},
-    {no:8,ch:'I',zh:'受益-风险可接受性',en:'Benefit-risk acceptability',hint:'全适用'},
-    {no:9,ch:'I',zh:'附录 XVI 产品特别规定',en:'Products without intended medical purpose',hint:'仅附录 XVI'},
+    {no:1,ch:'I',zh:'安全与性能（不得损害临床状况与安全）',en:'[editorial] Safety and performance',hint:'全适用'},
+    {no:2,ch:'I',zh:'「尽可能降低风险」的含义',en:'[editorial] Meaning of "reduce risks as far as possible"',hint:'全适用'},
+    {no:3,ch:'I',zh:'风险管理体系',en:'[editorial] Risk management system',hint:'全适用'},
+    {no:4,ch:'I',zh:'风险控制措施的优先顺序',en:'[editorial] Order of priority for risk control measures',hint:'全适用'},
+    {no:5,ch:'I',zh:'使用错误与合理可预见误用的风险',en:'[editorial] Risks from use error and reasonably foreseeable misuse',hint:'全适用'},
+    {no:6,ch:'I',zh:'使用寿命内的性能',en:'[editorial] Performance over the device lifetime',hint:'全适用'},
+    {no:7,ch:'I',zh:'运输与储存',en:'[editorial] Transport and storage',hint:'全适用'},
+    {no:8,ch:'I',zh:'受益-风险可接受性',en:'[editorial] Acceptability of the benefit-risk balance',hint:'全适用'},
+    {no:9,ch:'I',zh:'附录 XVI 产品：第 1 条与第 8 条应如何理解',en:'[editorial] Annex XVI products — how points 1 and 8 are to be read',hint:'仅附录 XVI'},
     {no:10,ch:'II',zh:'化学、物理与生物学特性',en:'Chemical, physical and biological properties',hint:'按技术特性'},
     {no:11,ch:'II',zh:'感染与微生物污染',en:'Infection and microbial contamination',hint:'按技术特性'},
-    {no:12,ch:'II',zh:'含药物成分的器械',en:'Devices incorporating a medicinal substance',hint:'按技术特性'},
-    {no:13,ch:'II',zh:'含生物源材料的器械',en:'Materials of biological origin',hint:'按技术特性'},
-    {no:14,ch:'II',zh:'结构与环境保护',en:'Construction and environmental properties',hint:'按技术特性'},
-    {no:15,ch:'II',zh:'诊断与测量功能',en:'Devices with a measuring function',hint:'按技术特性'},
+    {no:12,ch:'II',zh:'含药物成分的器械；以及由被人体吸收或局部弥散的物质构成的器械',en:'Devices incorporating a substance considered to be a medicinal product and devices that are composed of substances or of combinations of substances that are absorbed by or locally dispersed in the human body',hint:'按技术特性'},
+    {no:13,ch:'II',zh:'含生物源材料的器械',en:'Devices incorporating materials of biological origin',hint:'按技术特性'},
+    {no:14,ch:'II',zh:'器械结构及其与使用环境的交互',en:'Construction of devices and interaction with their environment',hint:'按技术特性'},
+    {no:15,ch:'II',zh:'具有诊断或测量功能的器械',en:'Devices with a diagnostic or measuring function',hint:'按技术特性'},
     {no:16,ch:'II',zh:'辐射防护',en:'Protection against radiation',hint:'按技术特性'},
-    {no:17,ch:'II',zh:'电子可编程系统与软件',en:'Electronic programmable systems and software',hint:'按技术特性'},
-    {no:18,ch:'II',zh:'有源器械与互联器械',en:'Active devices and devices connected to them',hint:'按技术特性'},
-    {no:19,ch:'II',zh:'有源植入器械的特别要求',en:'Active implantable devices',hint:'按技术特性'},
+    {no:17,ch:'II',zh:'电子可编程系统——含该系统的器械，以及本身即为器械的软件',en:'Electronic programmable systems — devices that incorporate electronic programmable systems and software that are devices in themselves',hint:'按技术特性'},
+    {no:18,ch:'II',zh:'有源器械及与其连接的器械',en:'Active devices and devices connected to them',hint:'按技术特性'},
+    {no:19,ch:'II',zh:'有源植入器械的特别要求',en:'Particular requirements for active implantable devices',hint:'按技术特性'},
     {no:20,ch:'II',zh:'机械与热风险防护',en:'Protection against mechanical and thermal risks',hint:'按技术特性'},
-    {no:21,ch:'II',zh:'能量或物质供给的风险防护',en:'Risks from energy or substances administered',hint:'按技术特性'},
-    {no:22,ch:'II',zh:'非专业用户使用的风险防护',en:'Devices for use by lay persons',hint:'按技术特性'},
+    {no:21,ch:'II',zh:'对输送能量或物质的器械所致患者/使用者风险的防护',en:'Protection against the risks posed to the patient or user by devices supplying energy or substances',hint:'按技术特性'},
+    {no:22,ch:'II',zh:'对制造商预期供非专业人员使用的器械所致风险的防护',en:'Protection against the risks posed by medical devices intended by the manufacturer for use by lay persons',hint:'按技术特性'},
     {no:23,ch:'III',zh:'标签与使用说明书',en:'Label and instructions for use',hint:'全适用'}
   ];
 
@@ -182,16 +182,29 @@ footer{padding:28px 0 54px;color:var(--soft);font-size:12px;line-height:1.9;bord
   });
 
   function load(){
+    var raw=null;
+    try{ raw=localStorage.getItem(KEY); }
+    catch(e){
+      // Storage disabled (Safari private mode, hardened browser, some intranet
+      // policy). Say so before the first keystroke, not after the first save —
+      // a user who fills in 23 requirements and then reloads loses all of it.
+      showSaveHint('本浏览器禁用了本地存储，<b>填写内容不会自动保存</b>，刷新即丢失。请每填一段就点一次「导出 GSPR 对照表 CSV」。');
+      return;
+    }
     try{
-      var raw=localStorage.getItem(KEY);
       if(raw){ var o=JSON.parse(raw); if(o){ Object.keys(o).forEach(function(k){ if(state[k]) state[k]=Object.assign(state[k],o[k]); }); } }
-    }catch(e){}
+    }catch(e){
+      showSaveHint('检测到保存的旧数据无法解析，已从空白开始（原数据仍留在浏览器里，未被覆盖）。如需保留请先用其他浏览器打开。');
+    }
+  }
+  function showSaveHint(msg){
+    var h=document.getElementById('savehint');
+    if(h){ h.style.display='block'; h.innerHTML=msg; }
   }
   function save(){
     try{ localStorage.setItem(KEY,JSON.stringify(state)); }
     catch(e){
-      var h=document.getElementById('savehint');
-      if(h){ h.style.display='block'; h.textContent='无法自动保存（浏览器禁用了本地存储）。请立即点「导出 GSPR 对照表 CSV」，否则刷新会丢失全部填写。'; }
+      showSaveHint('无法自动保存（浏览器禁用了本地存储）。请立即点「导出 GSPR 对照表 CSV」，否则刷新会丢失全部填写。');
     }
   }
 

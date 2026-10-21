@@ -172,9 +172,14 @@ console.log('\nconsistency-check');
 {
   const html = readTool('consistency-check.html');
   // normKey reads two checkboxes; supply their state as sandbox globals.
-  const api = sandbox(html, ['mdrClassIssue', 'normKey', 'normVal', 'display'], {
+  // mdrClassIssue delegates to normClass, so that has to be pulled out too —
+  // the sandbox only injects the functions it is told about. CLASS_OK is a
+  // module-level regex literal, not a function, so it goes in as a global.
+  const api = sandbox(html, ['normClass', 'reusableHint', 'mdrClassIssue', 'normKey', 'normVal', 'display'], {
     oSpace: { checked: true },
     oCase: { checked: true },
+    CLASS_OK: /^(is|im|ir|i|iia|iib|iii)$/,
+    REUSABLE: /钳|锉|钻|剪|刀|镜|钩|器械|刮匙|探针|镊|锯|forceps|broach|reamer|rasp|scissor|curette|probe|instrument|saw/i,
   });
 
   check('II is flagged: MDR has no plain class II', () => {
@@ -199,6 +204,32 @@ console.log('\nconsistency-check');
 
   check('bare I on a non-instrument name is not flagged', () => {
     assert.strictEqual(api.mdrClassIssue('I', '医用棉签'), '');
+  });
+
+  // Regression: every one of these was reported as "not an MDR class" once the
+  // tool was fed realistic export data. A warning that fires on the correct
+  // spelling is worse than no warning — the operator stops reading them.
+  check('decorated spellings of a valid class are NOT flagged', () => {
+    for (const v of ['Class IIa', 'Class I', 'class iia', 'iia', 'IIA', 'II a', 'II-a',
+                     'IIa 类', 'IIa（无菌）', 'Is/Im', 'IIa+IIb', 'IIa / IIb']) {
+      assert.strictEqual(api.mdrClassIssue(v, ''), '', 'wrongly flagged: ' + v);
+    }
+  });
+
+  check('the three Chinese class words behave as themselves, not as bare digits', () => {
+    assert.strictEqual(api.mdrClassIssue('一类', '医用棉签'), '');
+    assert.ok(/IIa|IIb/.test(api.mdrClassIssue('二类', '')), '二类 is a bare II');
+    assert.ok(api.mdrClassIssue('三类', ''), '三类 should be rewritten as III');
+  });
+
+  check('a MDD-era label is named as MDD, not lumped into "unknown"', () => {
+    assert.ok(/MDD/.test(api.mdrClassIssue('MDD Class IIa', '')));
+    assert.ok(/93\/42/.test(api.mdrClassIssue('MDD Class IIa', '')));
+  });
+
+  check('Chinese class word plus an instrument name still asks for Ir confirmation', () => {
+    const msg = api.mdrClassIssue('一类', '胫骨冲击锉手柄');
+    assert.ok(msg && /Ir/.test(msg), 'expected an Ir hint, got: ' + msg);
   });
 
   check('key normalisation is case and space insensitive', () => {
@@ -238,6 +269,75 @@ console.log('\ngspr-matrix');
 
   check('CSV export carries the original requirement text column', () => {
     assert.ok(/条款原文/.test(html), 'CSV header should include 条款原文');
+  });
+
+  // 条标题守卫：以下 8 处曾写错，逐条对照 OJ 原文校正后固化为断言，
+  // 防止再次退化。第 14 条尤其危险——旧值是 MDD 93/42/EEC 的措辞。
+  const en = {};
+  const re = /\{no:(\d+),ch:'([^']+)',zh:'([^']*)',en:'([^']*)'/g;
+  let m;
+  while ((m = re.exec(html)) !== null) en[+m[1]] = m[4];
+
+  check('point 14 uses the MDR heading, not the MDD one', () => {
+    assert.ok(en[14].includes('Construction of devices and interaction with their environment'), en[14]);
+    assert.ok(!en[14].includes('Construction and environmental properties'), 'MDD 93/42/EEC wording');
+  });
+
+  check('point 15 keeps "diagnostic"', () => {
+    assert.ok(en[15].includes('diagnostic or measuring function'), en[15]);
+    assert.notStrictEqual(en[15], 'Devices with a measuring function');
+  });
+
+  check('point 12 keeps the second branch (absorbed / locally dispersed)', () => {
+    assert.ok(/absorbed by or locally dispersed in the human body/.test(en[12]), en[12]);
+    assert.notStrictEqual(en[12], 'Devices incorporating a medicinal substance');
+  });
+
+  check('point 13 starts with "Devices incorporating"', () => {
+    assert.ok(en[13].startsWith('Devices incorporating materials of biological origin'), en[13]);
+    assert.notStrictEqual(en[13], 'Materials of biological origin');
+  });
+
+  check('point 17 keeps "software that are devices in themselves"', () => {
+    assert.ok(/devices in themselves/.test(en[17]), en[17]);
+    assert.notStrictEqual(en[17], 'Electronic programmable systems and software');
+  });
+
+  check('point 19 keeps "Particular requirements for"', () => {
+    assert.ok(en[19].startsWith('Particular requirements for active implantable devices'), en[19]);
+    assert.notStrictEqual(en[19], 'Active implantable devices');
+  });
+
+  check('points 21 and 22 use the "Protection against the risks posed by" form', () => {
+    assert.ok(en[21].startsWith('Protection against the risks posed'), en[21]);
+    assert.ok(en[22].startsWith('Protection against the risks posed'), en[22]);
+    assert.ok(/supplying energy or substances/.test(en[21]), en[21]);
+    assert.ok(/use by lay persons/.test(en[22]), en[22]);
+  });
+
+  check('points 10, 11, 16, 18, 20, 23 keep their official headings', () => {
+    assert.strictEqual(en[10], 'Chemical, physical and biological properties');
+    assert.strictEqual(en[11], 'Infection and microbial contamination');
+    assert.strictEqual(en[16], 'Protection against radiation');
+    assert.strictEqual(en[18], 'Active devices and devices connected to them');
+    assert.strictEqual(en[20], 'Protection against mechanical and thermal risks');
+    assert.strictEqual(en[23], 'Label and instructions for use');
+  });
+
+  // MDR Annex I Chapter I has no point headings in the legal text — every
+  // point 1-9 title here is ours and must say so.
+  check('points 1-9 are marked editorial, points 10-23 are not', () => {
+    for (let n = 1; n <= 9; n++) {
+      assert.ok(en[n].startsWith('[editorial]'), 'point ' + n + ': ' + en[n]);
+    }
+    for (let n = 10; n <= 23; n++) {
+      assert.ok(!en[n].startsWith('[editorial]'), 'point ' + n + ': ' + en[n]);
+    }
+  });
+
+  check('the header warns that point 9 is not a standalone requirement', () => {
+    assert.ok(/第 9 条不是一条独立要求/.test(html), 'header should explain what point 9 actually does');
+    assert.ok(/没有条标题/.test(html), 'header should say Chapter I has no point headings');
   });
 }
 

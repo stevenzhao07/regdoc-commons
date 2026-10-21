@@ -308,21 +308,62 @@ footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;bord
     }
   }
 
+  // Normalise a risk-class cell before judging it. Real exports write the class
+  // as "IIa", "Class IIa", "IIa 类", "iia" and "II-a" — all four mean the same
+  // thing. Only after stripping the decoration can "is this a valid MDR class?"
+  // be answered without crying wolf on every other row.
+  function normClass(s){
+    var t=String(s||'').toLowerCase();
+    t=t.replace(/[\s\u3000\u00a0\-－_]/g,'');         // spaces, hyphens, underscores
+    t=t.replace(/^(class|mdrclass|euclass)/,'');      // "Class IIa"
+    t=t.replace(/[（(][^）)]*[）)]/g,'');             // "IIa（无菌）"
+    t=t.replace(/[类级]$/,'');                        // "IIa 类"
+    t=t.replace(/^eu/,'');
+    return t;
+  }
+
+  var CLASS_OK = /^(is|im|ir|i|iia|iib|iii)$/;
+
+  // "I" may need to be Ir / Is / Im. A name that reads like a reusable
+  // instrument is the only cheap signal available, so it triggers a question,
+  // never a verdict.
+  var REUSABLE = /钳|锉|钻|剪|刀|镜|钩|器械|刮匙|探针|镊|锯|forceps|broach|reamer|rasp|scissor|curette|probe|instrument|saw/i;
+
+  function reusableHint(word){
+    return '写作「' + word + '」但名称像可重复使用手术器械——MDR 下这类可能是 Ir（或 Is / Im），需按属性重新确认分类';
+  }
+
   function mdrClassIssue(v,nameHint){
     var s=String(v||'').trim();
     if(!s) return '';
-    var t=s.toLowerCase().replace(/[\s－-]/g,'');
-    if(t==='is'||t==='im'||t==='ir') return '';
-    if(/^(iia|iib|iii)$/.test(t)) return '';
-    if(/^(2a|2b|3|二类a|三类|i{1,3}a?类)$/.test(t)) return '写法不规范：MDR 写作 IIa / IIb / III（没有 2a / 2b / 3 这类写法）';
-    if(t==='i'||t==='1'||t==='一类'||t==='i类'){
-      var reusable=/钳|锉|钻|剪|刀|镜|钩|器械|刮匙|探针|镊|锯|forceps|broach|reamer|rasp|scissor|curette|probe|instrument|saw/i;
-      if(reusable.test(String(nameHint||''))){
-        return '写作「I」但名称像可重复使用手术器械——MDR 下这类可能是 Ir（或 Is / Im），需按属性重新确认分类';
+    var hintName=String(nameHint||'');
+    // The Chinese class words are themselves class names, so they have to be
+    // recognised before trimming the trailing 类 — "二类" is a class, "二" is not.
+    var cn=s.replace(/[\s\u3000]/g,'');
+    if(/^[一三]类$/.test(cn)){
+      if(cn==='一类'){
+        if(REUSABLE.test(hintName)) return reusableHint('一类');
+        return '';
       }
+      return '写法不规范：MDR 写作 IIa / IIb / III（没有 2a / 2b / 3 这类写法）';
+    }
+    if(cn==='二类') return '写法不规范：MDR 无「II」类，应为 IIa 或 IIb';
+    // Split multi-valued cells first ("Is/Im", "IIa、IIb"), then normalise each
+    // part. Normalising before splitting would turn "Is/Im" into "isim".
+    var parts=s.split(/[\/、,，;；+&]/).map(function(x){ return normClass(x); }).filter(Boolean);
+    if(!parts.length) return '';
+    // A cell that is not a class at all is not a modelling error. Saying
+    // "not an MDR class" about "N/A" tells the operator nothing they did not
+    // already know, and buries the rows that matter.
+    if(parts.every(function(p){ return CLASS_OK.test(p); })) {
+      if(parts.length===1 && parts[0]==='i' && REUSABLE.test(hintName)) return reusableHint('I');
       return '';
     }
-    if(/^(ii|2|二类)$/.test(t)) return '写法不规范：MDR 无「II」类，应为 IIa 或 IIb';
+    var t=parts.join('');
+    if(/^(2a|2b|3)$/.test(t)) return '写法不规范：MDR 写作 IIa / IIb / III（没有 2a / 2b / 3 这类写法）';
+    if(t==='1') return '写法不规范：MDR 写作 I（不是数字 1）';
+    if(/^(ii|2)$/.test(t)) return '写法不规范：MDR 无「II」类，应为 IIa 或 IIb';
+    if(/^(mdd|9342)/.test(t)) return '这是 MDD 93/42/EEC 的分类写法；MDR 下需按附录 VIII 重新判定';
     return '不属于 MDR 分类写法，请核对是否为 MDD 旧分类';
   }
 
@@ -339,10 +380,10 @@ footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;bord
     var ia=state.A.head.indexOf(ka), ib=state.B.head.indexOf(kb);
     if(ia<0||ib<0){ out.innerHTML='<div class="step"><div class="nores">主键列没找到，请重新选择。</div></div>'; return; }
 
-    var mapA={},mapB={},dupA=[],dupB=[];
-    state.A.rows.forEach(function(r){ var k=normKey(r[ia]); if(!k) return; if(mapA[k]) dupA.push(display(r[ia])); mapA[k]=r; });
-    state.B.rows.forEach(function(r){ var k=normKey(r[ib]); if(!k) return; if(mapB[k]) dupB.push(display(r[ib])); mapB[k]=r; });
-
+    var mapA={},mapB={},dupA=[],dupB={};
+    var rawA={},rawB={};
+    state.A.rows.forEach(function(r){ var k=normKey(r[ia]); if(!k) return; if(mapA[k]) dupA.push(display(r[ia])); mapA[k]=r; rawA[k]=display(r[ia]); });
+    state.B.rows.forEach(function(r){ var k=normKey(r[ib]); if(!k) return; if(mapB[k]) dupB[k]=display(r[ib]); mapB[k]=r; rawB[k]=display(r[ib]); });
     if(state.A.head.length<2||state.B.head.length<2){
       var side=state.A.head.length<2?'A 表':'B 表';
       var n=state.A.head.length<2?state.A.head.length:state.B.head.length;
@@ -351,17 +392,16 @@ footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;bord
     }
 
     var onlyA=[],onlyB=[],diffs=[],classIssues=[];
-    var iax=state.A.head.indexOf(keyA.value), ibx=state.B.head.indexOf(keyB.value);
     Object.keys(mapA).forEach(function(k){
-      if(!mapB[k]){ onlyA.push({k:k,raw:display(mapA[k][iax]),row:mapA[k]}); return; }
+      if(!mapB[k]){ onlyA.push({k:k,raw:rawA[k],row:mapA[k]}); return; }
       state.compare.forEach(function(c){
         if(!c.on) return;
         var va=normVal(mapA[k][state.A.head.indexOf(c.a)]);
         var vb=normVal(mapB[k][state.B.head.indexOf(c.b)]);
-        if(va!==vb) diffs.push({k:k,raw:display(mapA[k][iax]),col:c.a,a:display(mapA[k][state.A.head.indexOf(c.a)]),b:display(mapB[k][state.B.head.indexOf(c.b)])});
+        if(va!==vb) diffs.push({k:k,raw:rawA[k],col:c.a,a:display(mapA[k][state.A.head.indexOf(c.a)]),b:display(mapB[k][state.B.head.indexOf(c.b)])});
       });
     });
-    Object.keys(mapB).forEach(function(k){ if(!mapA[k]) onlyB.push({k:k,raw:display(mapB[k][ibx]),row:mapB[k]}); });
+    Object.keys(mapB).forEach(function(k){ if(!mapA[k]) onlyB.push({k:k,raw:rawB[k],row:mapB[k]}); });
 
     if(oClass.checked){
       var nameCols=state.A.head.filter(function(h){ return /名称|品名|name|product/i.test(h); });
@@ -378,26 +418,33 @@ footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;bord
           var row=mapA[k], hint=nameCols.map(function(n){return row[state.A.head.indexOf(n)];}).join(' ');
           var msg=mdrClassIssue(row[state.A.head.indexOf(c.a)],hint);
           var dk=dkey(row,state.A.head,k)+'|'+msg;
-          if(msg && !seen[dk]){ seen[dk]=1; classIssues.push({k:k,side:'A 表',v:display(row[state.A.head.indexOf(c.a)]),msg:msg}); }
+          // Show the key as the user wrote it. A normalised key (0691... vs
+          // 691..., tx-100 vs TX-100) is a different string from the one in the
+          // other result tables, and an operator comparing two tables cannot
+          // confirm they are talking about the same device.
+          if(msg && !seen[dk]){ seen[dk]=1; classIssues.push({k:rawA[k]||k,side:'A 表',v:display(row[state.A.head.indexOf(c.a)]),msg:msg}); }
         });
         Object.keys(mapB).forEach(function(k){
           var row=mapB[k], hint=nameCols.map(function(n){return row[state.B.head.indexOf(n)];}).join(' ');
           var msg=mdrClassIssue(row[state.B.head.indexOf(c.b)],hint);
           var dk=dkey(row,state.B.head,k)+'|'+msg;
-          if(msg && !seen[dk]){ seen[dk]=1; classIssues.push({k:k,side:'B 表',v:display(row[state.B.head.indexOf(c.b)]),msg:msg}); }
+          if(msg && !seen[dk]){ seen[dk]=1; classIssues.push({k:rawB[k]||k,side:'B 表',v:display(row[state.B.head.indexOf(c.b)]),msg:msg}); }
         });
       });
     }
 
     var basicCol=state.A.head.filter(function(h){return /basic/i.test(h);})[0];
-    var bsusp=[];
+    var bsusp=[],bSingle=0;
+    var bTotal=Object.keys(mapA).length;
     if(basicCol){
       var bi=state.A.head.indexOf(basicCol), cnt={}, orig={};
       state.A.rows.forEach(function(r){ var b=normKey(r[bi]); if(b){ cnt[b]=(cnt[b]||0)+1; if(!orig[b]) orig[b]=display(r[bi]); } });
-      Object.keys(cnt).forEach(function(b){ if(cnt[b]===1) bsusp.push(orig[b]); });
+      Object.keys(cnt).forEach(function(b){ if(cnt[b]===1){ bSingle++; if(bsusp.indexOf(orig[b])<0) bsusp.push(orig[b]); } });
     }
 
-    lastResult={onlyA:onlyA,onlyB:onlyB,diffs:diffs,classIssues:classIssues,dupA:dupA,dupB:dupB,bsusp:bsusp};
+    lastResult={onlyA:onlyA,onlyB:onlyB,diffs:diffs,classIssues:classIssues,dupA:dupA,dupB:dupB,bsusp:bsusp,
+      lblA:keyA.options[keyA.selectedIndex]?keyA.options[keyA.selectedIndex].textContent:'主键',
+      lblB:keyB.options[keyB.selectedIndex]?keyB.options[keyB.selectedIndex].textContent:'主键'};
 
     var html='';
     html+='<div class="step"><h2 style="font-size:15px;margin-bottom:12px">核对结果</h2>';
@@ -433,19 +480,19 @@ footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;bord
       return s;
     }
 
-    html+=tbl('只在 A 表有 · B 表缺','这些器械在台账里但导出里没有，通常是漏录',
+    html+=tbl('只在 A 表有 · B 表缺','这些器械在 A 表里但 B 表里没有，通常是 B 表漏录',
       ['主键','记录'],
-      [{r:function(x){return x.k;},kind:'v'},{r:function(x){return x.row.join(' | ');}}],
+      [{r:function(x){return x.raw||x.k;},kind:'v'},{r:function(x){return x.row.join(' | ');}}],
       onlyA.map(function(x){return x;}));
 
-    html+=tbl('只在 B 表有 · A 表漏记','导出里有但台账没记，可能是新增未同步或已停产',
+    html+=tbl('只在 B 表有 · A 表漏记','B 表里有但 A 表没记，可能是新增未同步或已停产',
       ['主键','记录'],
-      [{r:function(x){return x.k;},kind:'v'},{r:function(x){return x.row.join(' | ');}}],
+      [{r:function(x){return x.raw||x.k;},kind:'v'},{r:function(x){return x.row.join(' | ');}}],
       onlyB);
 
     html+=tbl('字段不一致','同一个器械，两边某个字段的值不同',
       ['主键','字段','A 表的值','B 表的值'],
-      [{r:function(x){return x.k;},kind:'v'},{r:function(x){return x.col;}},
+      [{r:function(x){return x.raw||x.k;},kind:'v'},{r:function(x){return x.col;}},
        {r:function(x){return x.a;},kind:'old'},{r:function(x){return x.b;},kind:'new'}],
       diffs);
 
@@ -455,8 +502,8 @@ footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;bord
        {r:function(x){return x.v;},kind:'v'},{r:function(x){return x.msg;}}],
       classIssues);
 
-    if(oDup.checked && (dupA.length||dupB.length)){
-      var dupRows=dupA.map(function(v){return {k:v,side:'A 表'};}).concat(dupB.map(function(v){return {k:v,side:'B 表'};}));
+    if(oDup.checked && (dupA.length||Object.keys(dupB).length)){
+      var dupRows=dupA.map(function(v){return {k:v,side:'A 表'};}).concat(Object.keys(dupB).map(function(k){return {k:dupB[k],side:'B 表'};}));
       html+=tbl('重复主键','同一主键出现多次，会让比对结果失真，先清洗再核对',
         ['主键值','出现于'],
         [{r:function(x){return x.k;},kind:'v'},{r:function(x){return x.side;},kind:'v'}],
@@ -464,10 +511,15 @@ footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;bord
     }
 
     if(bsusp.length){
-      html+=tbl('Basic UDI-DI 分布（信息性，不计入差异）','只列出仅对应 1 条 UDI-DI 的 Basic UDI-DI；单条不视为异常',
-        ['Basic UDI-DI','提示'],
-        [{r:function(x){return x;},kind:'v'},{r:function(){return '只对应一条 UDI-DI，可能漏了包装层级，或该产品只有一个层级';}}],
-        bsusp);
+      // One UDI-DI per Basic UDI-DI is the normal case, not a warning. Listing
+      // every row would bury the real findings, so this is a summary line plus
+      // a sample, and it is reported separately from the six result sets.
+      html+='<div class="step" style="margin:2px 0 0"><div class="nores" style="border-left-color:#98a2b3;color:#475467">'
+        +'<b>Basic UDI-DI 分布（信息性，不计入差异，不导出到 CSV）</b>：A 表 '+bTotal+' 台器械中，'
+        +bsusp.length+' 个 Basic UDI-DI 各自只对应 1 条 UDI-DI——这是常见情形（一个型号一条），通常不需要处理。'
+        +'仅当同一型号存在不同包装层级或不同规格变体时，才需要检查是否漏录。'
+        +(bsusp.length?'<br>示例：'+bsusp.slice(0,5).map(function(v){return '<code>'+v.replace(/</g,'&lt;')+'</code>';}).join('、')+(bsusp.length>5?' 等 '+(bsusp.length-5)+' 个':''):'')
+        +'</div></div>';
     }
 
     html+='</div>';
@@ -478,13 +530,14 @@ footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;bord
 
   function exportCSV(){
     if(!lastResult){ alert('先点一次「开始核对」。'); return; }
-    var L=['类型,主键,字段/说明,A 表的值,B 表的值'];
-    lastResult.onlyA.forEach(function(x){ L.push('B表缺失,'+q(x.raw||x.k)+',,,'); });
-    lastResult.onlyB.forEach(function(x){ L.push('A表漏记,'+q(x.raw||x.k)+',,,'); });
-    lastResult.diffs.forEach(function(x){ L.push('字段不一致,'+q(x.raw||x.k)+','+q(x.col)+','+q(x.a)+','+q(x.b)); });
-    lastResult.classIssues.forEach(function(x){ L.push('风险等级提示,'+q(x.k)+','+q(x.side)+','+q(x.v)+','+q(x.msg)); });
-    if(oDup.checked){ lastResult.dupA.forEach(function(v){L.push('重复主键,'+q(v)+',A表,,');}); lastResult.dupB.forEach(function(v){L.push('重复主键,'+q(v)+',B表,,');}); }
-    lastResult.bsusp.forEach(function(v){ L.push('Basic UDI-DI 分布,'+q(v)+',,,该 Basic UDI-DI 下仅 1 条 UDI-DI（信息性，非异常）'); });
+    // A and B are labelled, not left as bare 主键: whoever receives this file
+    // needs to know which side is the export and which is the internal ledger.
+    var L=['类型,A 表主键,B 表主键,字段/说明,A 表的值,B 表的值'];
+    lastResult.onlyA.forEach(function(x){ L.push('B表缺失,'+q(x.raw||x.k)+',,,,'); });
+    lastResult.onlyB.forEach(function(x){ L.push('A表漏记,,'+q(x.raw||x.k)+',,,'); });
+    lastResult.diffs.forEach(function(x){ L.push('字段不一致,'+q(x.raw||x.k)+',,'+q(x.col)+','+q(x.a)+','+q(x.b)); });
+    lastResult.classIssues.forEach(function(x){ L.push('风险等级提示,'+q(x.side==='A 表'?x.k:'')+','+q(x.side==='B 表'?x.k:'')+','+q(x.side+' | '+x.v)+',,'+q(x.msg)); });
+    if(oDup.checked){ lastResult.dupA.forEach(function(v){L.push('重复主键,'+q(v)+',,,,');}); Object.keys(lastResult.dupB).forEach(function(k){L.push('重复主键,,'+q(lastResult.dupB[k])+',,,');}); }
 
     var blob=new Blob(['\uFEFF'+L.join('\n')],{type:'text/csv;charset=utf-8;'});
     var a=document.createElement('a');
@@ -521,7 +574,7 @@ footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;bord
     tb.value=DEMO_B.map(function(r){return r.join('\t');}).join('\n');
     analyze();
     var dh=document.getElementById('demohint');
-    if(dh){ dh.style.display='block'; dh.innerHTML='<b>示例说明（常驻，不会被结果覆盖）</b>：A 表 5 台、B 表 5 台，埋了 4 处问题——① SP-500 只在 B 表有（A 表漏记）；② RS-300 的预期用途「骨面修整」vs「骨面修整与打磨」（字段不一致）；③ AS-200 风险等级 A 表 <code>Ir</code>、B 表 <code>I</code>（写法/路径可疑）；④ SP-500 风险等级写 <code>II</code>（MDR 无 II 类）。<br><b>另会出现两条「写作 I、但名称像可重复使用手术器械」的提示（TX-100 胫骨冲击锉手柄、RS-300 骨锉），以及 3 行「Basic UDI-DI 分布」——这两类都是要求人工确认的信息性提示，不是错误。</b>'; }
+    if(dh){ dh.style.display='block'; dh.innerHTML='<b>示例说明（常驻，不会被结果覆盖）</b>：A 表 5 台、B 表 5 台，埋了 4 处问题——① SP-500 只在 B 表有（A 表漏记）；② RS-300 的预期用途「骨面修整」vs「骨面修整与打磨」（字段不一致）；③ AS-200 风险等级 A 表 <code>Ir</code>、B 表 <code>I</code>（写法/路径可疑）；④ SP-500 风险等级写 <code>II</code>（MDR 无 II 类）。<br>另会出现两条「写作 I、但名称像可重复使用手术器械」的提示（TX-100 胫骨冲击锉手柄、RS-300 骨锉），以及末尾一行 Basic UDI-DI 分布汇总——<b>这两类都是要求人工确认的信息性提示，不是错误</b>。'; }
     out.innerHTML='<div class="step"><div class="nores">示例已载入。点上面的「开始核对」看结果。</div></div>';
   }
 
