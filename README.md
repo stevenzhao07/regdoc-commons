@@ -63,9 +63,7 @@ Fastest path: download the ZIP, unzip, double-click any `.html` in `tools/`. No 
 From a terminal:
 
 ```bash
-# Replace <org> with the account in this page's URL — leaving it as-is gives
-# "repository not found".
-git clone https://github.com/<org>/regdoc-commons.git
+git clone https://github.com/stevenzhao07/regdoc-commons.git
 cd regdoc-commons
 
 # macOS
