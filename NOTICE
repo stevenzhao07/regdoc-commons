@@ -1,0 +1,12 @@
+regdoc-commons
+Copyright 2026 the regdoc-commons authors
+
+This product includes software developed by the regdoc-commons contributors and
+licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Prose documentation (README, CONTRIBUTING, AI-POLICY) is licensed under
+Creative Commons Attribution 4.0 International (see LICENSE-docs).
+
+The terminology and mapping data embedded in tools/glossary.html is additionally
+made available under CC-BY-4.0 for reuse outside that file. Attribution:
+"regdoc-commons".

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>医械法规文档术语库 v0.1（中英对照）</title>
+<style>
+:root{
+  --ink:#0a2540; --muted:#425466; --soft:#697386; --line:#e6ebf1;
+  --bg:#f6f9fc; --pri:#635bff; --ok:#0e9f6e; --warn:#b45309; --red:#c0392b;
+  --gray:#f1f4f8; --shadow:0 1px 2px rgba(10,37,64,.04),0 10px 30px -14px rgba(10,37,64,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;font-size:14.5px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+
+header{padding:52px 0 34px;background:radial-gradient(760px 300px at 10% -20%,rgba(99,91,255,.14),transparent 62%)}
+.eyebrow{display:inline-block;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);background:#fff;border:1px solid #e2e0ff;border-radius:99px;padding:4px 12px;margin-bottom:16px;font-weight:500}
+h1{font-size:31px;line-height:1.3;margin:0 0 10px;letter-spacing:-.02em;font-weight:600}
+.lede{font-size:14.5px;color:var(--muted);margin:0;max-width:760px}
+.stats{display:flex;gap:26px;flex-wrap:wrap;margin-top:22px;font-size:12.5px;color:var(--soft)}
+.stats b{color:var(--ink);font-size:17px;font-weight:600;margin-right:4px}
+
+.toolbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0;margin-top:26px}
+.tb{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+input[type=search]{
+  flex:1;min-width:220px;border:1px solid var(--line);background:#fff;border-radius:10px;
+  padding:9px 14px;font-size:13.5px;font-family:inherit;color:var(--ink);outline:none
+}
+input[type=search]:focus{border-color:#c9c6ff;box-shadow:0 0 0 3px rgba(99,91,255,.1)}
+.pill{font-size:12px;border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 13px;cursor:pointer;color:var(--soft);font-family:inherit;white-space:nowrap}
+.pill:hover{border-color:#c9c6ff;color:var(--pri)}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:500}
+.count{font-size:12.5px;color:var(--soft);margin-left:auto;white-space:nowrap}
+
+section{padding:34px 0 10px}
+h2{font-size:16px;margin:0 0 4px;font-weight:600;display:flex;align-items:center;gap:9px}
+h2 span{font-size:11.5px;color:#fff;background:var(--pri);border-radius:6px;padding:2px 8px;font-weight:600}
+.h2sub{font-size:12.5px;color:var(--soft);margin:0 0 14px}
+
+.tbl{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13.3px}
+th,td{padding:9px 14px;text-align:left;border-bottom:1px solid #f1f4f8;vertical-align:top}
+th{background:#fbfcfe;font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.05em;text-transform:uppercase}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafbff}
+td.en{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;color:var(--ink);width:38%}
+td.cn{font-weight:500;width:22%}
+td.note{font-size:12.5px;color:var(--muted)}
+.trap{display:inline-block;background:#fdf3e7;color:#8a4b08;border-radius:6px;padding:1px 7px;font-size:11.5px;font-weight:500;margin-right:6px}
+.empty{padding:26px;text-align:center;color:var(--soft);font-size:13px}
+
+.rules{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:14px;box-shadow:var(--shadow)}
+.rules h3{font-size:14px;margin:0 0 10px;font-weight:600}
+.rules ol{margin:0;padding-left:20px;font-size:13.3px;color:var(--muted);line-height:1.95}
+.rules ol b{color:var(--ink);font-weight:600}
+.rules .k{background:var(--gray);border-radius:6px;padding:1px 6px;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+
+.four{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.fcard{border:1px solid var(--line);border-radius:12px;padding:15px 16px;background:#fff}
+.fcard b{display:block;font-size:12px;color:var(--pri);letter-spacing:.05em;margin-bottom:6px;font-weight:600}
+.fcard p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.75}
+
+footer{padding:34px 0 60px;color:var(--soft);font-size:12px;line-height:1.9;border-top:1px solid var(--line);margin-top:30px}
+
+@media(max-width:820px){
+  h1{font-size:23px}
+  .four{grid-template-columns:1fr 1fr}
+  td.en{width:auto}
+  .count{margin-left:0;width:100%}
+}
+@media print{
+  .toolbar{display:none}
+  body{background:#fff}
+  .tbl{box-shadow:none}
+  section{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="eyebrow">regdoc-commons · v0.1 · 单文件 · 离线</span>
+    <h1>医械法规文档术语库</h1>
+    <p class="lede">
+      中英对照，98 条高频术语。这份表的价值不在「翻译对不对」，而在<b>标出了容易译反的 13 个坑</b>——
+      它们不是词典释义分歧，而是审评与翻译实务里反复出现的混淆点。
+    </p>
+    <div class="stats">
+      <span><b>98</b> 条术语</span>
+      <span><b>7</b> 个分组</span>
+      <span><b>13</b> 处高频误译</span>
+      <span>来源：MDR / ISO 13485 / ISO 14971 / ISO 15223-1 语境</span>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="wrap tb">
+    <input type="search" id="q" placeholder="搜索中英文，例如：钝化 / hazard / 灭菌 / 验证">
+    <button class="pill on" data-cat="all">全部</button>
+    <button class="pill" data-cat="A">器械结构</button>
+    <button class="pill" data-cat="B">材料表面</button>
+    <button class="pill" data-cat="C">灭菌洁净</button>
+    <button class="pill" data-cat="D">包装标识</button>
+    <button class="pill" data-cat="E">法规注册</button>
+    <button class="pill" data-cat="F">风险质量</button>
+    <button class="pill" data-cat="G">测试验证</button>
+    <span class="count" id="cnt">共 98 条</span>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <section data-cat="A">
+    <h2><span>A</span>器械与结构</h2>
+    <p class="h2sub">骨科与手术器械语境。这一组最容易出错的是 trial、broach、rasp 这几个。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>English</th><th>中文</th><th>说明 / 易错点</th></tr></thead>
+        <tbody>
+          <tr><td class="en">implant</td><td class="cn">植入物</td><td class="note">区分 implant（植入物，名词）与 implantable（植入式，形容词）</td></tr>
+          <tr><td class="en">prosthesis</td><td class="cn">假体</td><td class="note">复数 prostheses；关节置换语境固定用「假体」</td></tr>
+          <tr><td class="en">trial / trial component</td><td class="cn">试模 / 试模件</td><td class="note"><span class="trap">易错</span>骨科术中试复位用件，不译「试验」「试用」</td></tr>
+          <tr><td class="en">broach</td><td class="cn">髓腔锉</td><td class="note"><span class="trap">易错</span>机械领域译「拉刀」，骨科语境必须是「髓腔锉」</td></tr>
+          <tr><td class="en">impactor</td><td class="cn">打击器 / 打入器</td><td class="note">胫骨冲击锉手柄类器械常与 broach 连用</td></tr>
+          <tr><td class="en">reamer</td><td class="cn">铰刀 / 扩髓钻</td><td class="note">骨科扩髓用「扩髓钻」；髋臼用「髋臼锉」</td></tr>
+          <tr><td class="en">rasp</td><td class="cn">骨锉</td><td class="note">与 broach 区分：rasp 是表面修整，broach 是成形</td></tr>
+          <tr><td class="en">forceps</td><td class="cn">钳</td><td class="note">arthroscopic forceps = 关节镜钳；单复数同形</td></tr>
+          <tr><td class="en">stem</td><td class="cn">柄</td><td class="note">femoral stem = 股骨柄，不译「杆」</td></tr>
+          <tr><td class="en">acetabular cup</td><td class="cn">髋臼杯</td><td class="note">外杯为 shell，内衬为 liner</td></tr>
+          <tr><td class="en">liner / insert</td><td class="cn">内衬 / 衬垫</td><td class="note">同一语境下不要混用；liner 多用于髋，insert 多用于膝</td></tr>
+          <tr><td class="en">femoral head</td><td class="cn">股骨头 / 球头</td><td class="note">器械语境用「球头」，解剖语境用「股骨头」</td></tr>
+          <tr><td class="en">modular</td><td class="cn">模块化</td><td class="note">modular stem = 模块化柄</td></tr>
+          <tr><td class="en">instrumentation</td><td class="cn">器械 / 手术器械</td><td class="note">不可译为「仪器」；器械包为 instrument set / tray</td></tr>
+          <tr><td class="en">single-use</td><td class="cn">一次性使用</td><td class="note">对应 single-use device；勿写「一次性用品」</td></tr>
+          <tr><td class="en">reusable</td><td class="cn">可重复使用</td><td class="note">MDR 中 class I reusable surgical instrument 有专门过渡规则</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section data-cat="B">
+    <h2><span>B</span>材料与表面处理</h2>
+    <p class="h2sub">喷砂件、钝化件的清洁验证与生物相容性文件里高频出现。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>English</th><th>中文</th><th>说明 / 易错点</th></tr></thead>
+        <tbody>
+          <tr><td class="en">stainless steel</td><td class="cn">不锈钢</td><td class="note">630 不锈钢即 17-4PH 沉淀硬化型，写法保持「630」不换算</td></tr>
+          <tr><td class="en">passivation</td><td class="cn">钝化</td><td class="note"><span class="trap">易错</span>不是「活化」「钝化处理剂」；是去除游离铁形成钝化膜</td></tr>
+          <tr><td class="en">sandblasting / grit blasting</td><td class="cn">喷砂</td><td class="note">写明磨料与粒径；与 shot blasting（钢丸）区分</td></tr>
+          <tr><td class="en">bead blasting</td><td class="cn">喷玻璃珠（珠击清理）</td><td class="note">磨料为玻璃珠/陶瓷珠；不要译作「喷丸」——「喷丸」对应 shot blasting（钢丸）</td></tr>
+          <tr><td class="en">electropolishing</td><td class="cn">电解抛光</td><td class="note">常与 passivation 前后使用，注意工序顺序表述</td></tr>
+          <tr><td class="en">anodizing</td><td class="cn">阳极氧化</td><td class="note">钛件常用；不可写「阳极处理」</td></tr>
+          <tr><td class="en">Ti-6Al-4V</td><td class="cn">钛合金（TC4）</td><td class="note">材料牌号保留原写法，中文补注 TC4 即可</td></tr>
+          <tr><td class="en">nitinol / nickel-titanium</td><td class="cn">镍钛合金</td><td class="note">首次出现写「镍钛合金（Nitinol）」，后文统一用「镍钛」</td></tr>
+          <tr><td class="en">UHMWPE</td><td class="cn">超高分子量聚乙烯</td><td class="note">保留缩写 UHMWPE，首次出现给全称</td></tr>
+          <tr><td class="en">PEEK</td><td class="cn">聚醚醚酮</td><td class="note">保留缩写</td></tr>
+          <tr><td class="en">surface roughness (Ra)</td><td class="cn">表面粗糙度</td><td class="note">标注单位 μm，不要省略</td></tr>
+          <tr><td class="en">corrosion resistance</td><td class="cn">耐腐蚀性</td><td class="note">不是「抗腐蚀能力」</td></tr>
+          <tr><td class="en">machined</td><td class="cn">机加工</td><td class="note">与 forged（锻造）、cast（铸造）并列出现时保持句式一致</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section data-cat="C">
+    <h2><span>C</span>灭菌与洁净</h2>
+    <p class="h2sub">这一组是翻译事故的高发区，sterile 和 sterilization 最常被混成「消毒」。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>English</th><th>中文</th><th>说明 / 易错点</th></tr></thead>
+        <tbody>
+          <tr><td class="en">sterilization</td><td class="cn">灭菌</td><td class="note"><span class="trap">易错</span>灭菌 ≠ 消毒。disinfection 才是「消毒」，两者不可互换</td></tr>
+          <tr><td class="en">sterile</td><td class="cn">无菌</td><td class="note">sterile device = 无菌器械；勿写「消毒过的」</td></tr>
+          <tr><td class="en">sterility assurance level (SAL)</td><td class="cn">无菌保证水平</td><td class="note">写作 10⁻⁶ 形式，保留上标</td></tr>
+          <tr><td class="en">moist heat sterilization</td><td class="cn">湿热灭菌</td><td class="note">134 ℃ 3 min / 121 ℃ 15 min 是常见参数组合</td></tr>
+          <tr><td class="en">ethylene oxide (EO)</td><td class="cn">环氧乙烷</td><td class="note">残留量表述用 EO residue，不是「环氧乙烷残渣」</td></tr>
+          <tr><td class="en">autoclave</td><td class="cn">压力蒸汽灭菌器</td><td class="note">口语「高压锅」不可入正式文件</td></tr>
+          <tr><td class="en">bioburden</td><td class="cn">生物负载</td><td class="note"><span class="trap">易错</span>不是「生物负担」「生物负荷」</td></tr>
+          <tr><td class="en">endotoxin</td><td class="cn">内毒素</td><td class="note">限值常以 EU/mL 或 EU/device 表示</td></tr>
+          <tr><td class="en">pyrogen</td><td class="cn">致热原</td><td class="note">与 endotoxin 不是同义词，勿合并</td></tr>
+          <tr><td class="en">limulus amebocyte lysate (LAL)</td><td class="cn">鲎试剂</td><td class="note">保留 LAL 缩写；鲎字不要写错</td></tr>
+          <tr><td class="en">cleaning validation</td><td class="cn">清洁验证</td><td class="note">注意与 cleaning verification 区别，见 F 组验证/确认条</td></tr>
+          <tr><td class="en">residue</td><td class="cn">残留物</td><td class="note">cleaning residue = 清洁残留物</td></tr>
+          <tr><td class="en">reprocessing</td><td class="cn">再处理</td><td class="note">单次使用器械再处理属高风险议题，措辞须谨慎</td></tr>
+          <tr><td class="en">aseptic</td><td class="cn">无菌（操作）</td><td class="note">aseptic processing = 无菌工艺</td></tr>
+          <tr><td class="en">sterile barrier system</td><td class="cn">无菌屏障系统</td><td class="note">缩写 SBS；保留缩写便于与公告机构沟通</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section data-cat="D">
+    <h2><span>D</span>包装与标识</h2>
+    <p class="h2sub">IFU 与标签是审评最常挑格式问题的地方，术语必须逐字稳定。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>English</th><th>中文</th><th>说明 / 易错点</th></tr></thead>
+        <tbody>
+          <tr><td class="en">instructions for use (IFU)</td><td class="cn">使用说明书</td><td class="note"><span class="trap">易错</span>不是「使用指导」「说明书」；中文法规文书中固定用「使用说明书」</td></tr>
+          <tr><td class="en">labelling</td><td class="cn">标签标识</td><td class="note">label 是实物标签，labelling 是含标签与随附信息的整体</td></tr>
+          <tr><td class="en">unique device identification (UDI)</td><td class="cn">唯一器械标识</td><td class="note">不译「设备唯一识别码」</td></tr>
+          <tr><td class="en">Basic UDI-DI</td><td class="cn">基本 UDI-DI</td><td class="note">保留原文不译，EUDAMED 字段名需与原文一致</td></tr>
+          <tr><td class="en">shelf life</td><td class="cn">货架寿命 / 有效期</td><td class="note">同一文件内统一一种说法，不要混用</td></tr>
+          <tr><td class="en">expiry date</td><td class="cn">失效日期</td><td class="note">格式按目标市场要求（YYYY-MM-DD 或 YYYY-MM）</td></tr>
+          <tr><td class="en">summary of safety and clinical performance (SSCP)</td><td class="cn">安全与临床性能摘要</td><td class="note">植入类与 III 类适用</td></tr>
+          <tr><td class="en">symbols</td><td class="cn">符号</td><td class="note">引用 ISO 15223-1，符号不得自行改绘</td></tr>
+          <tr><td class="en">single sterile barrier</td><td class="cn">单一无菌屏障</td><td class="note">对应 single sterile barrier system（SSBS）</td></tr>
+          <tr><td class="en">intended purpose</td><td class="cn">预期用途</td><td class="note"><span class="trap">易错</span>不是「预期目的」。MDR 第 2(12) 条定义的是 intended purpose（预期用途）；intended use 属 FDA/IMDRF 用语，翻译欧盟文件时不要互换</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section data-cat="E">
+    <h2><span>E</span>法规与注册</h2>
+    <p class="h2sub">MDR / FDA / NMPA 三个体系混用时，同一个中文词可能对应不同英文，必须按体系固定。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>English</th><th>中文</th><th>说明 / 易错点</th></tr></thead>
+        <tbody>
+          <tr><td class="en">conformity assessment</td><td class="cn">符合性评定</td><td class="note">ISO/CASCO 体系内也译「合格评定」，同一文件选一种并保持一致</td></tr>
+          <tr><td class="en">notified body</td><td class="cn">公告机构</td><td class="note"><span class="trap">易错</span>不译「认证机构」「发证机构」；可简写 NB，但首次出现须写全「公告机构（notified body, NB）」</td></tr>
+          <tr><td class="en">technical documentation</td><td class="cn">技术文档</td><td class="note">统一用「技术文档」；「技术文件」在 NMPA 语境可对译，但同一份文件内不得混用</td></tr>
+          <tr><td class="en">general safety and performance requirements (GSPR)</td><td class="cn">通用安全与性能要求</td><td class="note">保留 GSPR 缩写</td></tr>
+          <tr><td class="en">declaration of conformity</td><td class="cn">符合性声明</td><td class="note">不是「合格证」</td></tr>
+          <tr><td class="en">CE marking</td><td class="cn">CE 标识</td><td class="note">不是「CE 认证」；CE 标识由制造商自我声明并承担全部责任，但 MDR 下除部分 I 类器械外均须公告机构参与符合性评定——措辞影响法律表述</td></tr>
+          <tr><td class="en">equivalence</td><td class="cn">等同性</td><td class="note">equivalence route = 等同性路径，临床评价常用</td></tr>
+          <tr><td class="en">clinical evaluation</td><td class="cn">临床评价</td><td class="note">与 clinical investigation（临床试验）区分</td></tr>
+          <tr><td class="en">clinical evaluation report (CER)</td><td class="cn">临床评价报告</td><td class="note">保留 CER 缩写</td></tr>
+          <tr><td class="en">post-market clinical follow-up (PMCF)</td><td class="cn">上市后临床跟踪</td><td class="note">MDR 语境统一用「上市后临床跟踪」；「上市后临床随访」在部分文献中通用，但同一份文件内不得混用</td></tr>
+          <tr><td class="en">post-market surveillance (PMS)</td><td class="cn">上市后监督</td><td class="note">与 PMCF 并列但不相同，勿混</td></tr>
+          <tr><td class="en">periodic safety update report (PSUR)</td><td class="cn">定期安全性更新报告</td><td class="note">MDR 第 86(1) 条第二段：<b>IIa 在必要时且至少每 2 年</b>更新，<b>IIb 与 III 至少每年</b>更新（以 EUR-Lex 第 86 条原文为准）</td></tr>
+          <tr><td class="en">vigilance</td><td class="cn">警戒</td><td class="note">不译「 vigilance 监测」这类中英混写</td></tr>
+          <tr><td class="en">field safety corrective action (FSCA)</td><td class="cn">现场安全纠正措施</td><td class="note">常与 FSN（现场安全通知）配套</td></tr>
+          <tr><td class="en">serious incident</td><td class="cn">严重事件</td><td class="note">与 serious adverse event 区分，后者多用于临床试验</td></tr>
+          <tr><td class="en">legal manufacturer</td><td class="cn">法定制造商</td><td class="note">不译「合法制造商」</td></tr>
+          <tr><td class="en">authorised representative</td><td class="cn">授权代表</td><td class="note">欧盟境内，缩写 EC REP</td></tr>
+          <tr><td class="en">importer / distributor</td><td class="cn">进口商 / 经销商</td><td class="note">MDR 下两者义务不同，不可合并为「代理商」</td></tr>
+          <tr><td class="en">significant change</td><td class="cn">重大变更</td><td class="note">判定标准影响是否需重新评定，措辞须严格</td></tr>
+          <tr><td class="en">transitional provision</td><td class="cn">过渡条款</td><td class="note">MDR Article 120 语境</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section data-cat="F">
+    <h2><span>F</span>风险与质量</h2>
+    <p class="h2sub">hazard / harm / residual risk 这一组是 ISO 14971 翻译的重灾区，错一个整段逻辑就反了。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>English</th><th>中文</th><th>说明 / 易错点</th></tr></thead>
+        <tbody>
+          <tr><td class="en">hazard</td><td class="cn">危害</td><td class="note"><span class="trap">易错</span>hazard = 危害（潜在来源），不是「危险」</td></tr>
+          <tr><td class="en">hazardous situation</td><td class="cn">危险情况</td><td class="note">人暴露于危害时所处的状态</td></tr>
+          <tr><td class="en">harm</td><td class="cn">伤害</td><td class="note"><span class="trap">易错</span>harm = 伤害（已造成），不是「危害」</td></tr>
+          <tr><td class="en">severity</td><td class="cn">严重度</td><td class="note">不是「严重性」「严酷度」</td></tr>
+          <tr><td class="en">probability of occurrence</td><td class="cn">发生概率</td><td class="note">与 probability of harm 区分</td></tr>
+          <tr><td class="en">residual risk</td><td class="cn">剩余风险</td><td class="note"><span class="trap">易错</span>不是「残留风险」；residual 在此为「剩余」</td></tr>
+          <tr><td class="en">risk control</td><td class="cn">风险控制</td><td class="note">风险控制措施 = risk control measure</td></tr>
+          <tr><td class="en">nonconformity</td><td class="cn">不合格</td><td class="note">不译「不符合项」（后者多指审核发现）</td></tr>
+          <tr><td class="en">corrective and preventive action (CAPA)</td><td class="cn">纠正和预防措施</td><td class="note">保留 CAPA；corrective 与 preventive 不可只译一半</td></tr>
+          <tr><td class="en">design control</td><td class="cn">设计控制</td><td class="note">FDA 语境高频</td></tr>
+          <tr><td class="en">design history file (DHF)</td><td class="cn">设计历史文档</td><td class="note">与 DMR、DHR 三者常被混</td></tr>
+          <tr><td class="en">device master record (DMR)</td><td class="cn">器械主记录</td><td class="note">含成品规格与工艺</td></tr>
+          <tr><td class="en">device history record (DHR)</td><td class="cn">器械历史记录</td><td class="note">某一批的生产记录</td></tr>
+          <tr><td class="en">verification</td><td class="cn">验证</td><td class="note"><span class="trap">易错</span>对「规定要求」的符合性——做对了吗</td></tr>
+          <tr><td class="en">validation</td><td class="cn">确认</td><td class="note"><span class="trap">易错</span>对「预期用途」的符合性——做的是对的东西吗。中文直觉常把两者译反</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section data-cat="G">
+    <h2><span>G</span>测试与验证</h2>
+    <p class="h2sub">生物相容性与力学性能报告里的固定搭配。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>English</th><th>中文</th><th>说明 / 易错点</th></tr></thead>
+        <tbody>
+          <tr><td class="en">biocompatibility</td><td class="cn">生物相容性</td><td class="note">不译「生物兼容性」</td></tr>
+          <tr><td class="en">cytotoxicity</td><td class="cn">细胞毒性</td><td class="note">ISO 10993-5 语境</td></tr>
+          <tr><td class="en">sensitization</td><td class="cn">致敏</td><td class="note">与 irritation（刺激）并列，勿合并</td></tr>
+          <tr><td class="en">mechanical fatigue</td><td class="cn">机械疲劳</td><td class="note">写明循环次数与载荷水平</td></tr>
+          <tr><td class="en">wear</td><td class="cn">磨损</td><td class="note">wear rate = 磨损率；wear debris = 磨损颗粒</td></tr>
+          <tr><td class="en">torque</td><td class="cn">扭矩</td><td class="note">单位 N·m，不要写成 Nm 混排</td></tr>
+          <tr><td class="en">pull-out strength</td><td class="cn">拔出力</td><td class="note">骨科螺钉/锚钉常用</td></tr>
+          <tr><td class="en">accelerated aging</td><td class="cn">加速老化</td><td class="note">对应 shelf-life study 的常用方法</td></tr>
+          <tr><td class="en">shelf-life study</td><td class="cn">货架寿命研究</td><td class="note">与 accelerated aging 配套表述</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="empty" id="empty" style="display:none">没有匹配的术语。试试只搜英文单词或中文两个字。</div>
+
+  <section>
+    <h2 style="font-size:16px">使用规范（比术语本身更重要）</h2>
+    <p class="h2sub">术语库的价值不在条目多少，在「谁能改、怎么改、改了怎么溯源」。</p>
+    <div class="rules">
+      <h3>四条硬规则</h3>
+      <ol>
+        <li><b>一个项目一份锁定版。</b>项目启动时把当前版本号写进项目书，项目期间不跟随术语库升级，避免中途漂移。</li>
+        <li><b>客户指定优先。</b>客户已有内部术语表的，以客户为准，冲突项单列一张 <span class="k">conflict</span> 表并在交付时说明。</li>
+        <li><b>改一条必须写理由。</b>任何修改记录三样：原译、新译、为什么。没有理由的修改一律驳回。</li>
+        <li><b>法规原文不改写。</b>GSPR 条款、法规名称、机构名称一律照原文，只做语言转换，不做意译。「不超过」不能写成「大约」。</li>
+      </ol>
+    </div>
+
+    <div class="four">
+      <div class="fcard"><b>模板</b><p>这次做完留下可复用的表格结构与字段定义，下次直接套。</p></div>
+      <div class="fcard"><b>检查清单</b><p>把「易错」项抽成交付前必查 8 条，逐条打勾。</p></div>
+      <div class="fcard"><b>踩坑记录</b><p>每个返工点记一句：错在哪、为什么错、以后怎么防。</p></div>
+      <div class="fcard"><b>发布前检查</b><p>对外发布前过一遍脱敏检查（公司名、型号、项目代号、人名），保留可复用的结构与标注。</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>版本 v0.1 · 2026-10-21。</b>术语取舍以 MDR / ISO 13485 / ISO 14971 / ISO 15223-1 语境为主；不含条款原文，不含任何客户文件内容。</p>
+    <p>标注「易错」的条目是审评与翻译实务里反复出现的混淆点，不是词典释义分歧。条款原文、标准编号与限值请以官方发布文本为准，本表不替代法规原文。</p>
+    <p>下一版计划：补充德/法/西/意四语的对照列，并把「易错」项扩到 20 条。</p>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  var q = document.getElementById('q');
+  var pills = Array.prototype.slice.call(document.querySelectorAll('.pill'));
+  var secs = Array.prototype.slice.call(document.querySelectorAll('section[data-cat]'));
+  var cnt = document.getElementById('cnt');
+  var empty = document.getElementById('empty');
+  var cat = 'all';
+
+  function apply(){
+    var kw = (q.value || '').trim().toLowerCase();
+    var total = 0;
+    secs.forEach(function(sec){
+      var showSec = (cat === 'all' || sec.dataset.cat === cat);
+      var rows = Array.prototype.slice.call(sec.querySelectorAll('tbody tr'));
+      var visible = 0;
+      rows.forEach(function(r){
+        var hit = !kw || r.textContent.toLowerCase().indexOf(kw) > -1;
+        r.style.display = (showSec && hit) ? '' : 'none';
+        if(showSec && hit) visible++;
+      });
+      sec.style.display = visible ? '' : 'none';
+      total += visible;
+    });
+    cnt.textContent = '显示 ' + total + ' 条';
+    empty.style.display = total ? 'none' : '';
+  }
+
+  q.addEventListener('input', apply);
+  pills.forEach(function(p){
+    p.addEventListener('click', function(){
+      pills.forEach(function(x){ x.classList.remove('on'); });
+      p.classList.add('on');
+      cat = p.dataset.cat;
+      apply();
+    });
+  });
+  apply();
+})();
+</script>
+
+</body>
+</html>

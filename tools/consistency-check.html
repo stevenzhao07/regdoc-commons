@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDR 一致性核对工具 v0.1</title>
+<style>
+:root{
+  --ink:#0a2540; --muted:#425466; --soft:#697386; --line:#e6ebf1;
+  --bg:#f6f9fc; --pri:#635bff; --ok:#0e9f6e; --okbg:#e7f7f1;
+  --warn:#b45309; --warnbg:#fdf3e7; --red:#c0392b; --redbg:#fdecea;
+  --gray:#f1f4f8; --shadow:0 1px 2px rgba(10,37,64,.04),0 10px 30px -14px rgba(10,37,64,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.7}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+header{padding:46px 0 28px;background:radial-gradient(720px 280px at 8% -20%,rgba(99,91,255,.14),transparent 62%)}
+.eyebrow{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);background:#fff;border:1px solid #e2e0ff;border-radius:99px;padding:4px 11px;margin-bottom:14px;font-weight:500}
+h1{font-size:28px;line-height:1.32;margin:0 0 8px;letter-spacing:-.02em;font-weight:600}
+.lede{font-size:14px;color:var(--muted);margin:0;max-width:740px}
+
+.step{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
+.step h2{font-size:15px;margin:0 0 3px;font-weight:600;display:flex;align-items:center;gap:9px}
+.step h2 i{width:21px;height:21px;border-radius:6px;background:var(--pri);color:#fff;font-size:11.5px;font-style:normal;display:inline-flex;align-items:center;justify-content:center;font-weight:600}
+.step .hint{font-size:12.5px;color:var(--soft);margin:0 0 14px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pane{display:flex;flex-direction:column}
+.pane label{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.pane label em{font-style:normal;font-size:11.5px;color:var(--soft);font-weight:400}
+textarea{
+  width:100%;min-height:150px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.6;
+  color:var(--ink);background:#fbfcfe;resize:vertical;outline:none
+}
+textarea:focus{border-color:#c9c6ff;box-shadow:0 0 0 3px rgba(99,91,255,.09);background:#fff}
+
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld label{font-size:12px;color:var(--soft);font-weight:500}
+select{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 11px;font-size:13px;font-family:inherit;color:var(--ink);outline:none;min-width:150px}
+select:focus{border-color:#c9c6ff}
+
+.chks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chk{display:inline-flex;align-items:center;gap:6px;background:var(--gray);border-radius:8px;padding:5px 10px;font-size:12.5px;cursor:pointer;user-select:none}
+.chk input{margin:0;accent-color:var(--pri)}
+.chk.off{opacity:.45}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.opt{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--muted);cursor:pointer}
+.opt input{margin-top:4px;accent-color:var(--pri)}
+
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+button.b{border:none;border-radius:10px;padding:10px 20px;font-size:13.5px;font-weight:500;font-family:inherit;cursor:pointer;transition:.15s}
+.b-pri{background:var(--pri);color:#fff}
+.b-pri:hover{background:#554de0}
+.b-ghost{background:#fff;border:1px solid var(--line)!important;color:var(--ink)}
+.b-ghost:hover{border-color:#c9c6ff!important;color:var(--pri)}
+
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px}
+.k{border:1px solid var(--line);border-radius:11px;padding:13px 15px;background:#fff}
+.k b{display:block;font-size:20px;line-height:1.2;font-weight:600}
+.k span{font-size:11.5px;color:var(--soft)}
+.k.r b{color:var(--red)} .k.a b{color:var(--warn)} .k.g b{color:var(--ok)}
+
+.tbl{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.bt{background:#fbfcfe;border-bottom:1px solid var(--line);padding:10px 15px;font-size:12.5px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.bt em{font-style:normal;font-weight:400;color:var(--soft);font-size:11.5px}
+.scroll{max-height:340px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #f1f4f8;vertical-align:top}
+th{background:#fbfcfe;font-size:10.5px;font-weight:600;color:var(--soft);letter-spacing:.04em;text-transform:uppercase;position:sticky;top:0}
+tr:last-child td{border-bottom:none}
+td.v{font-family:ui-monospace,Consolas,monospace;font-size:11.5px}
+td.old{color:var(--red)}
+td.new{color:var(--ok)}
+.pill{display:inline-block;font-size:11px;border-radius:5px;padding:1px 7px;font-weight:500;white-space:nowrap}
+.p-red{background:var(--redbg);color:#a5321f}
+.p-warn{background:var(--warnbg);color:#8a4b08}
+.p-ok{background:var(--okbg);color:#0b7a55}
+.nores{padding:26px;text-align:center;color:var(--soft);font-size:13px}
+.okmsg{background:var(--okbg);border:1px solid #cfeade;border-radius:11px;padding:14px 18px;font-size:13.5px;color:#1c6b50;margin-bottom:14px}
+
+.rules{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 24px;box-shadow:var(--shadow)}
+.rules h3{font-size:13.5px;margin:0 0 8px;font-weight:600}
+.rules ul{margin:0;padding-left:19px;font-size:13px;color:var(--muted);line-height:1.9}
+.rules ul b{color:var(--ink)}
+.rules .code{background:var(--gray);border-radius:5px;padding:1px 6px;font-family:ui-monospace,Consolas,monospace;font-size:11.5px}
+
+footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;border-top:1px solid var(--line);margin-top:26px}
+
+.hide{display:none!important}
+@media(max-width:820px){
+  .grid2,.opts{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr 1fr}
+  h1{font-size:22px}
+}
+@media print{
+  .btns,textarea,.no-print{display:none!important}
+  .scroll{max-height:none;overflow:visible}
+  .item,tr{page-break-inside:avoid;break-inside:avoid}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="eyebrow">regdoc-commons · v0.1 · 单文件 · 离线</span>
+    <h1>MDR 一致性核对</h1>
+    <p class="lede">
+      把两边的器械清单贴进来，按你勾选的列自动比对，输出「只在 A 有」「只在 B 有」「字段值不一致」三类差异，另加重复主键、风险等级写法、Basic UDI-DI 分布三项数据质量提示。
+      纯本地运行，数据不上传。
+    </p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="step no-print">
+    <h2><i>1</i>粘贴两边数据</h2>
+    <p class="hint">直接从 Excel 复制粘贴即可（支持 Tab 或逗号分隔，带引号的字段也能处理）。第一行必须是表头。</p>
+    <div class="grid2">
+      <div class="pane">
+        <label>A 表 <em>内部台账 / 技术文档清单</em></label>
+        <textarea id="ta" placeholder="Basic UDI-DI&#9;UDI-DI&#9;型号&#9;器械名称&#9;风险等级&#9;预期用途&#10;BUDI-630-001&#9;06912345678902&#9;TX-100&#9;胫骨冲击锉手柄&#9;I&#9;用于胫骨平台试模与打击定位"></textarea>
+      </div>
+      <div class="pane">
+        <label>B 表 <em>EUDAMED 导出 / 证书清单</em></label>
+        <textarea id="tb" placeholder="Basic UDI-DI&#9;UDI-DI&#9;型号&#9;器械名称&#9;风险等级&#9;预期用途&#10;BUDI-630-001&#9;06912345678902&#9;TX-100&#9;胫骨冲击锉手柄&#9;I&#9;用于胫骨平台试模与打击定位"></textarea>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="b b-ghost" id="demo">载入示例（含 4 处故意错误）</button>
+      <button class="b b-ghost" id="clear">清空已粘贴内容</button>
+    </div>
+  </div>
+
+  <div class="step no-print">
+    <h2><i>2</i>设定主键与比对列</h2>
+    <p class="hint">主键用来匹配两边的同一条器械。通常用 UDI-DI；没有 UDI 的话用「型号」。</p>
+    <div class="row">
+      <div class="fld"><label>A 表主键列</label><select id="keyA"><option>—</option></select></div>
+      <div class="fld"><label>B 表主键列</label><select id="keyB"><option>—</option></select></div>
+    </div>
+    <div class="chks" id="cols"><span style="font-size:12.5px;color:#697386">粘贴数据后，这里会列出两边同名的列，可勾选要比对哪些。</span></div>
+  </div>
+
+  <div class="step no-print">
+    <h2><i>3</i>核对规则</h2>
+    <p class="hint">这几条直接决定误报率。默认值适合大多数情况。</p>
+    <div class="opts">
+      <label class="opt"><input type="checkbox" id="oCase" checked><span>忽略大小写</span></label>
+      <label class="opt"><input type="checkbox" id="oSpace" checked><span>忽略空格与全角半角差异</span></label>
+      <label class="opt"><input type="checkbox" id="oDup" checked><span>检测重复主键</span></label>
+      <label class="opt"><input type="checkbox" id="oClass" checked><span>校验风险等级是否为 MDR 分类写法</span></label>
+    </div>
+    <div class="btns">
+      <button class="b b-pri" id="run">开始核对</button>
+      <button class="b b-ghost" id="export">导出差异清单 CSV</button>
+    </div>
+  </div>
+
+  <div id="demohint" style="display:none;background:#f4f7fb;border:1px solid #d6e0ee;border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:12.5px;line-height:1.65;color:#3c4a5c"></div>
+  <div id="out"></div>
+
+  <div class="step" style="margin-top:26px">
+    <h2 style="font-size:15px;margin-bottom:12px">这个工具多做的那一层</h2>
+    <div class="rules">
+      <h3>四条按 MDR 语境写进工具的规则（通用 diff 工具没有）</h3>
+      <ul>
+        <li><b>风险等级写法校验（只查写法，不判分类）。</b>MDR 分类写作 <span class="code">I / Is / Im / Ir / IIa / IIb / III</span>。出现 <span class="code">II</span>、<span class="code">2 类</span>、<span class="code">2</span> 等 MDD / FDA 写法会被标出。<b>是否应为 Is / Im / Ir 取决于灭菌状态、是否有测量功能、是否可重复使用，不由器械名称推断</b>——若名称像可重复使用手术器械而写法只有 <span class="code">I</span>，工具只提示「请人工确认」，不作判定。</li>
+        <li><b>Basic UDI-DI 与 UDI-DI 的层级关系（信息性，不计入差异）。</b>同一个 Basic UDI-DI 下可能对应多条 UDI-DI（不同包装层级或型号），也可能只有一条——<b>单条不视为异常</b>。工具只列出每个 Basic UDI-DI 的 UDI-DI 条数，请按该产品的实际包装层级人工确认。</li>
+        <li><b>预期用途不逐字比对。</b>不同来源的措辞必然不同，逐字比会全是误报。工具只做「缺失关键词」提示，关键词由你在比对列里手动控制。</li>
+        <li><b>重复主键检测。</b>一边出现两条相同 UDI-DI 是脏数据，会让后面的比对结果整体失真，所以单独列出来。</li>
+      </ul>
+    </div>
+
+    <div class="rules" style="margin-top:12px">
+      <h3>核对前必查（8 条清单）</h3>
+      <ul>
+        <li>两边的 UDI-DI 是否都已去掉首尾空格、且格式一致（GS1 是 14 位数字）</li>
+        <li>B 表是否为完整导出，而不是筛选后的部分视图</li>
+        <li>风险等级列是否混用了 MDD 旧分类与 MDR 新分类</li>
+        <li>型号列是否存在「同一型号多种写法」（如 X-100 / X100 / X 100）</li>
+        <li>预期用途是否被 Excel 截断（单元格字符上限）</li>
+        <li>是否有器械在 B 表存在但已停产，不应算作缺项</li>
+        <li>Basic UDI-DI 是否同一型号组共用一个</li>
+        <li>证书编号是否与公告机构四位数代码对应</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <p><b>本工具不替代法规原文。</b>所有判定为「提示」而非「结论」，最终判断须由有资质的人员签核。</p>
+    <p>数据全程在本地浏览器内处理，不上传任何服务器。页面刷新即清空，请及时导出结果。</p>
+    <p>v0.1 · 2026-10-21 · 后续计划：证书有效期比对、EUDAMED 字段名映射表、多语言预期用途比对。</p>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  var ta=document.getElementById('ta'), tb=document.getElementById('tb');
+  var keyA=document.getElementById('keyA'), keyB=document.getElementById('keyB');
+  var colsBox=document.getElementById('cols'), out=document.getElementById('out');
+  var oCase=document.getElementById('oCase'), oSpace=document.getElementById('oSpace');
+  var oDup=document.getElementById('oDup'), oClass=document.getElementById('oClass');
+
+  var state={A:null,B:null,compare:[]};
+  var lastResult=null;
+
+  function parseTable(text){
+    text=String(text||'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+    if(!text.trim()) return [];
+    var first=text.split('\n')[0];
+    var d=(first.split('\t').length>=first.split(',').length)?'\t':',';
+    var rows=[],row=[],f='',q=false;
+    for(var i=0;i<text.length;i++){
+      var c=text[i];
+      if(q){
+        if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; }
+        else f+=c;
+      }else{
+        if(c==='"') q=true;
+        else if(c===d){ row.push(f); f=''; }
+        else if(c==='\n'){ row.push(f); rows.push(row); row=[]; f=''; }
+        else f+=c;
+      }
+    }
+    row.push(f); rows.push(row);
+    return rows.filter(function(r){ return r.some(function(x){ return String(x).trim()!==''; }); });
+  }
+
+  function normKey(s){
+    var v=String(s==null?'':s).trim();
+    if(oSpace.checked) v=v.replace(/[\s\u3000]/g,'').replace(/[－—–]/g,'-');
+    if(oCase.checked) v=v.toLowerCase();
+    return v;
+  }
+  function normVal(s){
+    var v=String(s==null?'':s).trim().replace(/[\u3000]/g,' ');
+    if(oSpace.checked) v=v.replace(/\s+/g,'');
+    if(oCase.checked) v=v.toLowerCase();
+    return v;
+  }
+  function display(s){ return String(s==null?'':s).trim(); }
+
+  // Rebuild the selectors only when the headers actually change. Otherwise the
+  // key a user picked, and the columns they unchecked, are silently reset the
+  // moment they click "开始核对".
+  function analyze(){
+    var ra=parseTable(ta.value), rb=parseTable(tb.value);
+    if(ra.length<2 || rb.length<2){ state.A=null; state.B=null; buildCols(); return; }
+    var headA=ra[0].map(display), headB=rb[0].map(display);
+    var same=state.A&&state.B
+      &&state.A.head.join('\u0001')===headA.join('\u0001')
+      &&state.B.head.join('\u0001')===headB.join('\u0001');
+    state.A={head:headA,rows:ra.slice(1)};
+    state.B={head:headB,rows:rb.slice(1)};
+    if(!same) buildCols();
+  }
+
+  function fill(sel,head){
+    sel.innerHTML='';
+    head.forEach(function(h){ var o=document.createElement('option'); o.textContent=h; o.value=h; sel.appendChild(o); });
+  }
+
+  function buildCols(){
+    colsBox.innerHTML='';
+    if(!state.A||!state.B){
+      colsBox.innerHTML='<span style="font-size:12.5px;color:#697386">粘贴数据后，这里会列出两边同名的列，可勾选要比对哪些。</span>';
+      keyA.innerHTML='<option>—</option>'; keyB.innerHTML='<option>—</option>';
+      return;
+    }
+    fill(keyA,state.A.head); fill(keyB,state.B.head);
+    var pick=function(sel,head,pref){
+      var exact=-1,loose=-1;
+      for(var i=0;i<head.length;i++){
+        var h=head[i].toLowerCase().replace(/[\s_]/g,'');
+        if(h===pref){ exact=i; break; }
+        if(loose<0 && h.indexOf(pref)>-1 && h.indexOf('basic')<0) loose=i;
+      }
+      if(exact>-1){ sel.value=head[exact]; return true; }
+      if(loose>-1){ sel.value=head[loose]; return true; }
+      return false;
+    };
+    if(!pick(keyA,state.A.head,'udi-di')) pick(keyA,state.A.head,'型号');
+    if(!pick(keyB,state.B.head,'udi-di')) pick(keyB,state.B.head,'型号');
+
+    var hb=state.B.head.map(function(h){return h.toLowerCase().replace(/\s/g,'');});
+    state.compare=[];
+    state.A.head.forEach(function(h){
+      var i=hb.indexOf(h.toLowerCase().replace(/\s/g,''));
+      if(i>-1){
+        state.compare.push({a:h,b:state.B.head[i],on:true});
+        var lab=document.createElement('label'); lab.className='chk';
+        var cb=document.createElement('input'); cb.type='checkbox'; cb.checked=true;
+        cb.addEventListener('change',function(){ state.compare.forEach(function(c){ if(c.a===h) c.on=cb.checked; }); lab.classList.toggle('off',!cb.checked); });
+        lab.appendChild(cb); lab.appendChild(document.createTextNode(h));
+        colsBox.appendChild(lab);
+      }
+    });
+    if(!state.compare.length){
+      colsBox.innerHTML='<span style="font-size:12.5px;color:#c0392b">两表没有同名的列，无法比对。请先把表头改成一致（至少要有 UDI-DI 或型号）。</span>';
+    }
+  }
+
+  function mdrClassIssue(v,nameHint){
+    var s=String(v||'').trim();
+    if(!s) return '';
+    var t=s.toLowerCase().replace(/[\s－-]/g,'');
+    if(t==='is'||t==='im'||t==='ir') return '';
+    if(/^(iia|iib|iii)$/.test(t)) return '';
+    if(/^(2a|2b|3|二类a|三类|i{1,3}a?类)$/.test(t)) return '写法不规范：MDR 写作 IIa / IIb / III（没有 2a / 2b / 3 这类写法）';
+    if(t==='i'||t==='1'||t==='一类'||t==='i类'){
+      var reusable=/钳|锉|钻|剪|刀|镜|钩|器械|刮匙|探针|镊|锯|forceps|broach|reamer|rasp|scissor|curette|probe|instrument|saw/i;
+      if(reusable.test(String(nameHint||''))){
+        return '写作「I」但名称像可重复使用手术器械——MDR 下这类可能是 Ir（或 Is / Im），需按属性重新确认分类';
+      }
+      return '';
+    }
+    if(/^(ii|2|二类)$/.test(t)) return '写法不规范：MDR 无「II」类，应为 IIa 或 IIb';
+    return '不属于 MDR 分类写法，请核对是否为 MDD 旧分类';
+  }
+
+  function run(){
+    out.innerHTML='';
+    analyze();
+    if(!state.A||!state.B){
+      out.innerHTML='<div class="step"><div class="nores">两边都粘贴数据（各至少两行，含表头）后再点核对。</div></div>';
+      return;
+    }
+    var ka=keyA.value, kb=keyB.value;
+    if(!ka||!kb||ka==='—'||kb==='—'){ out.innerHTML='<div class="step"><div class="nores">请先选好两边的主键列。</div></div>'; return; }
+
+    var ia=state.A.head.indexOf(ka), ib=state.B.head.indexOf(kb);
+    if(ia<0||ib<0){ out.innerHTML='<div class="step"><div class="nores">主键列没找到，请重新选择。</div></div>'; return; }
+
+    var mapA={},mapB={},dupA=[],dupB=[];
+    state.A.rows.forEach(function(r){ var k=normKey(r[ia]); if(!k) return; if(mapA[k]) dupA.push(display(r[ia])); mapA[k]=r; });
+    state.B.rows.forEach(function(r){ var k=normKey(r[ib]); if(!k) return; if(mapB[k]) dupB.push(display(r[ib])); mapB[k]=r; });
+
+    if(state.A.head.length<2||state.B.head.length<2){
+      var side=state.A.head.length<2?'A 表':'B 表';
+      var n=state.A.head.length<2?state.A.head.length:state.B.head.length;
+      out.innerHTML='<div class="step"><div class="nores">'+side+'只识别出 '+n+' 列，无法比对。常见原因是复制时制表符丢了（从 Word 或网页复制最容易发生）。请从 Excel 直接复制整块区域（含表头）再粘贴，或另存为 CSV 后粘贴。</div></div>';
+      return;
+    }
+
+    var onlyA=[],onlyB=[],diffs=[],classIssues=[];
+    var iax=state.A.head.indexOf(keyA.value), ibx=state.B.head.indexOf(keyB.value);
+    Object.keys(mapA).forEach(function(k){
+      if(!mapB[k]){ onlyA.push({k:k,raw:display(mapA[k][iax]),row:mapA[k]}); return; }
+      state.compare.forEach(function(c){
+        if(!c.on) return;
+        var va=normVal(mapA[k][state.A.head.indexOf(c.a)]);
+        var vb=normVal(mapB[k][state.B.head.indexOf(c.b)]);
+        if(va!==vb) diffs.push({k:k,raw:display(mapA[k][iax]),col:c.a,a:display(mapA[k][state.A.head.indexOf(c.a)]),b:display(mapB[k][state.B.head.indexOf(c.b)])});
+      });
+    });
+    Object.keys(mapB).forEach(function(k){ if(!mapA[k]) onlyB.push({k:k,raw:display(mapB[k][ibx]),row:mapB[k]}); });
+
+    if(oClass.checked){
+      var nameCols=state.A.head.filter(function(h){ return /名称|品名|name|product/i.test(h); });
+      var modelCol=state.A.head.filter(function(h){ return /型号|规格|model|spec/i.test(h); })[0];
+      state.compare.forEach(function(c){
+        if(!/风险|类别|class/i.test(c.a)) return;
+        var seen={};
+        var dkey=function(row,head,fk){
+          if(!modelCol) return fk;
+          var mi=head.indexOf(modelCol);
+          return mi>-1 ? (normKey(row[mi])||fk) : fk;
+        };
+        Object.keys(mapA).forEach(function(k){
+          var row=mapA[k], hint=nameCols.map(function(n){return row[state.A.head.indexOf(n)];}).join(' ');
+          var msg=mdrClassIssue(row[state.A.head.indexOf(c.a)],hint);
+          var dk=dkey(row,state.A.head,k)+'|'+msg;
+          if(msg && !seen[dk]){ seen[dk]=1; classIssues.push({k:k,side:'A 表',v:display(row[state.A.head.indexOf(c.a)]),msg:msg}); }
+        });
+        Object.keys(mapB).forEach(function(k){
+          var row=mapB[k], hint=nameCols.map(function(n){return row[state.B.head.indexOf(n)];}).join(' ');
+          var msg=mdrClassIssue(row[state.B.head.indexOf(c.b)],hint);
+          var dk=dkey(row,state.B.head,k)+'|'+msg;
+          if(msg && !seen[dk]){ seen[dk]=1; classIssues.push({k:k,side:'B 表',v:display(row[state.B.head.indexOf(c.b)]),msg:msg}); }
+        });
+      });
+    }
+
+    var basicCol=state.A.head.filter(function(h){return /basic/i.test(h);})[0];
+    var bsusp=[];
+    if(basicCol){
+      var bi=state.A.head.indexOf(basicCol), cnt={}, orig={};
+      state.A.rows.forEach(function(r){ var b=normKey(r[bi]); if(b){ cnt[b]=(cnt[b]||0)+1; if(!orig[b]) orig[b]=display(r[bi]); } });
+      Object.keys(cnt).forEach(function(b){ if(cnt[b]===1) bsusp.push(orig[b]); });
+    }
+
+    lastResult={onlyA:onlyA,onlyB:onlyB,diffs:diffs,classIssues:classIssues,dupA:dupA,dupB:dupB,bsusp:bsusp};
+
+    var html='';
+    html+='<div class="step"><h2 style="font-size:15px;margin-bottom:12px">核对结果</h2>';
+    html+='<div class="cards">';
+    html+='<div class="k r"><b>'+onlyA.length+'</b><span>B 表缺失（需补录）</span></div>';
+    html+='<div class="k a"><b>'+onlyB.length+'</b><span>A 表漏记</span></div>';
+    html+='<div class="k r"><b>'+diffs.length+'</b><span>字段不一致</span></div>';
+    html+='<div class="k g"><b>'+(Object.keys(mapA).length)+'</b><span>A 表器械数</span></div>';
+    html+='</div>';
+
+    if(!onlyA.length&&!onlyB.length&&!diffs.length){
+      html+='<div class="okmsg">两边完全一致。但请注意：这只代表字段值一致，不代表技术文档与证书本身合规。</div>';
+    }
+
+    function tbl(title,note,head,cells,rows){
+      if(!rows.length) return '';
+      var s='<div class="tbl"><div class="bt"><span>'+title+'</span><em>'+note+'</em></div><div class="scroll"><table><thead><tr>';
+      head.forEach(function(h){ s+='<th>'+h+'</th>'; });
+      s+='</tr></thead><tbody>';
+      rows.forEach(function(r){
+        s+='<tr>';
+        cells.forEach(function(c){
+          var val=c.r(r);
+          var cls='';
+          if(c.kind==='old') cls=' class="v old"';
+          else if(c.kind==='new') cls=' class="v new"';
+          else if(c.kind==='v') cls=' class="v"';
+          s+='<td'+cls+'>'+(val===''?'—':String(val).replace(/&/g,'&amp;').replace(/</g,'&lt;'))+'</td>';
+        });
+        s+='</tr>';
+      });
+      s+='</tbody></table></div></div>';
+      return s;
+    }
+
+    html+=tbl('只在 A 表有 · B 表缺','这些器械在台账里但导出里没有，通常是漏录',
+      ['主键','记录'],
+      [{r:function(x){return x.k;},kind:'v'},{r:function(x){return x.row.join(' | ');}}],
+      onlyA.map(function(x){return x;}));
+
+    html+=tbl('只在 B 表有 · A 表漏记','导出里有但台账没记，可能是新增未同步或已停产',
+      ['主键','记录'],
+      [{r:function(x){return x.k;},kind:'v'},{r:function(x){return x.row.join(' | ');}}],
+      onlyB);
+
+    html+=tbl('字段不一致','同一个器械，两边某个字段的值不同',
+      ['主键','字段','A 表的值','B 表的值'],
+      [{r:function(x){return x.k;},kind:'v'},{r:function(x){return x.col;}},
+       {r:function(x){return x.a;},kind:'old'},{r:function(x){return x.b;},kind:'new'}],
+      diffs);
+
+    html+=tbl('风险等级写法提示','不是结论，是提醒你去核对分类路径',
+      ['主键','来源','当前写法','提示'],
+      [{r:function(x){return x.k;},kind:'v'},{r:function(x){return x.side;},kind:'v'},
+       {r:function(x){return x.v;},kind:'v'},{r:function(x){return x.msg;}}],
+      classIssues);
+
+    if(oDup.checked && (dupA.length||dupB.length)){
+      var dupRows=dupA.map(function(v){return {k:v,side:'A 表'};}).concat(dupB.map(function(v){return {k:v,side:'B 表'};}));
+      html+=tbl('重复主键','同一主键出现多次，会让比对结果失真，先清洗再核对',
+        ['主键值','出现于'],
+        [{r:function(x){return x.k;},kind:'v'},{r:function(x){return x.side;},kind:'v'}],
+        dupRows);
+    }
+
+    if(bsusp.length){
+      html+=tbl('Basic UDI-DI 分布（信息性，不计入差异）','只列出仅对应 1 条 UDI-DI 的 Basic UDI-DI；单条不视为异常',
+        ['Basic UDI-DI','提示'],
+        [{r:function(x){return x;},kind:'v'},{r:function(){return '只对应一条 UDI-DI，可能漏了包装层级，或该产品只有一个层级';}}],
+        bsusp);
+    }
+
+    html+='</div>';
+    out.innerHTML=html;
+    var anchor=document.getElementById('demohint');
+    (anchor&&anchor.style.display!=='none'?anchor:out).scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function exportCSV(){
+    if(!lastResult){ alert('先点一次「开始核对」。'); return; }
+    var L=['类型,主键,字段/说明,A 表的值,B 表的值'];
+    lastResult.onlyA.forEach(function(x){ L.push('B表缺失,'+q(x.raw||x.k)+',,,'); });
+    lastResult.onlyB.forEach(function(x){ L.push('A表漏记,'+q(x.raw||x.k)+',,,'); });
+    lastResult.diffs.forEach(function(x){ L.push('字段不一致,'+q(x.raw||x.k)+','+q(x.col)+','+q(x.a)+','+q(x.b)); });
+    lastResult.classIssues.forEach(function(x){ L.push('风险等级提示,'+q(x.k)+','+q(x.side)+','+q(x.v)+','+q(x.msg)); });
+    if(oDup.checked){ lastResult.dupA.forEach(function(v){L.push('重复主键,'+q(v)+',A表,,');}); lastResult.dupB.forEach(function(v){L.push('重复主键,'+q(v)+',B表,,');}); }
+    lastResult.bsusp.forEach(function(v){ L.push('Basic UDI-DI 分布,'+q(v)+',,,该 Basic UDI-DI 下仅 1 条 UDI-DI（信息性，非异常）'); });
+
+    var blob=new Blob(['\uFEFF'+L.join('\n')],{type:'text/csv;charset=utf-8;'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='一致性核对差异清单-'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); },1500);
+  }
+  // Neutralise leading characters Excel would evaluate (CSV injection, OWASP).
+  function q(s){
+    var v=String(s==null?'':s);
+    if(/^[=+\-@\t\r]/.test(v)) v="'"+v;
+    return '"'+v.replace(/"/g,'""')+'"';
+  }
+
+  var DEMO_A=[
+    ['Basic UDI-DI','UDI-DI','型号','器械名称','风险等级','预期用途','证书编号'],
+    ['BUDI-630-001','06912345678902','TX-100','胫骨冲击锉手柄','I','用于胫骨平台试模与打击定位','CE-1234'],
+    ['BUDI-630-001','06912345678919','TX-100','胫骨冲击锉手柄','I','用于胫骨平台试模与打击定位','CE-1234'],
+    ['BUDI-630-002','06912345678926','AS-200','关节镜钳','Ir','用于关节镜下软组织抓取与切除','CE-1234'],
+    ['BUDI-630-003','06912345678933','RS-300','骨锉','I','用于骨面修整','CE-1234'],
+    ['BUDI-630-004','06912345678940','IM-400','髓腔锉','Is','用于股骨髓腔成形','CE-1234']
+  ];
+  var DEMO_B=[
+    ['Basic UDI-DI','UDI-DI','型号','器械名称','风险等级','预期用途','证书编号'],
+    ['BUDI-630-001','06912345678902','TX-100','胫骨冲击锉手柄','I','用于胫骨平台试模与打击定位','CE-1234'],
+    ['BUDI-630-001','06912345678919','TX-100','胫骨冲击锉手柄','I','用于胫骨平台试模与打击定位','CE-1234'],
+    ['BUDI-630-002','06912345678926','AS-200','关节镜钳','I','用于关节镜下软组织抓取与切除','CE-1234'],
+    ['BUDI-630-003','06912345678933','RS-300','骨锉','I','用于骨面修整与打磨','CE-1234'],
+    ['BUDI-630-005','06912345678957','SP-500','刮匙','II','用于病灶清除','CE-1234']
+  ];
+  function loadDemo(){
+    ta.value=DEMO_A.map(function(r){return r.join('\t');}).join('\n');
+    tb.value=DEMO_B.map(function(r){return r.join('\t');}).join('\n');
+    analyze();
+    var dh=document.getElementById('demohint');
+    if(dh){ dh.style.display='block'; dh.innerHTML='<b>示例说明（常驻，不会被结果覆盖）</b>：A 表 5 台、B 表 5 台，埋了 4 处问题——① SP-500 只在 B 表有（A 表漏记）；② RS-300 的预期用途「骨面修整」vs「骨面修整与打磨」（字段不一致）；③ AS-200 风险等级 A 表 <code>Ir</code>、B 表 <code>I</code>（写法/路径可疑）；④ SP-500 风险等级写 <code>II</code>（MDR 无 II 类）。<br><b>另会出现两条「写作 I、但名称像可重复使用手术器械」的提示（TX-100 胫骨冲击锉手柄、RS-300 骨锉），以及 3 行「Basic UDI-DI 分布」——这两类都是要求人工确认的信息性提示，不是错误。</b>'; }
+    out.innerHTML='<div class="step"><div class="nores">示例已载入。点上面的「开始核对」看结果。</div></div>';
+  }
+
+  document.getElementById('demo').addEventListener('click',loadDemo);
+  document.getElementById('clear').addEventListener('click',function(){
+    ta.value=''; tb.value=''; state.A=null; state.B=null; lastResult=null; buildCols(); out.innerHTML='';
+    var dh=document.getElementById('demohint'); if(dh){ dh.style.display='none'; dh.innerHTML=''; }
+  });
+  document.getElementById('run').addEventListener('click',run);
+  document.getElementById('export').addEventListener('click',exportCSV);
+  ta.addEventListener('input',analyze); tb.addEventListener('input',analyze);
+})();
+</script>
+
+</body>
+</html>

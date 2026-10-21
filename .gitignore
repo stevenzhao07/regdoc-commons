@@ -1,0 +1,10 @@
+# Exported results are client data. They must never be committed.
+*.csv
+*.xlsx
+*.xls
+*.pdf
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini

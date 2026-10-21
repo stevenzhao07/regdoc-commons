@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>发补应答拆解工具 v0.1</title>
+<style>
+:root{
+  --ink:#0a2540; --muted:#425466; --soft:#697386; --line:#e6ebf1;
+  --bg:#f6f9fc; --pri:#635bff; --ok:#0e9f6e; --okbg:#e7f7f1;
+  --warn:#b45309; --warnbg:#fdf3e7; --red:#c0392b; --redbg:#fdecea;
+  --gray:#f1f4f8; --shadow:0 1px 2px rgba(10,37,64,.04),0 10px 30px -14px rgba(10,37,64,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.7}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+header{padding:46px 0 26px;background:radial-gradient(720px 280px at 8% -20%,rgba(99,91,255,.14),transparent 62%)}
+.eyebrow{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);background:#fff;border:1px solid #e2e0ff;border-radius:99px;padding:4px 11px;margin-bottom:14px;font-weight:500}
+h1{font-size:28px;line-height:1.32;margin:0 0 8px;letter-spacing:-.02em;font-weight:600}
+.lede{font-size:14px;color:var(--muted);margin:0;max-width:760px}
+
+.step{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
+.step h2{font-size:15px;margin:0 0 3px;font-weight:600;display:flex;align-items:center;gap:9px}
+.step h2 i{width:21px;height:21px;border-radius:6px;background:var(--pri);color:#fff;font-size:11.5px;font-style:normal;display:inline-flex;align-items:center;justify-content:center;font-weight:600}
+.step .hint{font-size:12.5px;color:var(--soft);margin:0 0 13px}
+
+textarea{width:100%;min-height:170px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;line-height:1.7;color:var(--ink);background:#fbfcfe;resize:vertical;outline:none}
+textarea:focus{border-color:#c9c6ff;box-shadow:0 0 0 3px rgba(99,91,255,.09);background:#fff}
+
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button.b{border:none;border-radius:10px;padding:10px 20px;font-size:13.5px;font-weight:500;font-family:inherit;cursor:pointer;transition:.15s}
+.b-pri{background:var(--pri);color:#fff}
+.b-pri:hover{background:#554de0}
+.b-ghost{background:#fff;border:1px solid var(--line)!important;color:var(--ink)}
+.b-ghost:hover{border-color:#c9c6ff!important;color:var(--pri)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px}
+.k{border:1px solid var(--line);border-radius:11px;padding:12px 15px;background:#fff}
+.k b{display:block;font-size:19px;line-height:1.2;font-weight:600}
+.k span{font-size:11.5px;color:var(--soft)}
+.k.c b{color:var(--red)} .k.m b{color:var(--warn)} .k.g b{color:var(--ok)}
+
+.item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:11px;box-shadow:var(--shadow)}
+.item .hd{display:flex;gap:10px;align-items:flex-start;margin-bottom:9px}
+.item .no{flex:0 0 auto;width:24px;height:24px;border-radius:7px;background:var(--gray);color:var(--soft);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.item .raw{flex:1;font-size:12.8px;color:var(--ink);line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.item.crit{border-left:3px solid var(--red)}
+.item.imp{border-left:3px solid var(--warn)}
+.item.min{border-left:3px solid var(--soft)}
+.fields{display:grid;grid-template-columns:1.1fr .7fr 1fr;gap:9px;margin-left:34px}
+.fields .f{display:flex;flex-direction:column;gap:4px}
+.fields label{font-size:11px;color:var(--soft);font-weight:500}
+.fields select,.fields input{border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;font-family:inherit;color:var(--ink);background:#fff;outline:none;width:100%}
+.fields select:focus,.fields input:focus{border-color:#c9c6ff}
+.fields .wide{grid-column:1 / -1}
+
+.nores{padding:24px;text-align:center;color:var(--soft);font-size:13px}
+.savehint{font-size:11.5px;color:var(--soft);margin-top:10px}
+
+.ref{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 26px;box-shadow:var(--shadow);margin-bottom:14px}
+.ref h3{font-size:14px;margin:0 0 4px;font-weight:600}
+.ref .sub{font-size:12.5px;color:var(--soft);margin:0 0 14px}
+.tblwrap{border:1px solid var(--line);border-radius:11px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12.6px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid #f1f4f8;vertical-align:top}
+th{background:#fbfcfe;font-size:10.5px;font-weight:600;color:var(--soft);letter-spacing:.04em;text-transform:uppercase}
+tr:last-child td{border-bottom:none}
+td.c{font-weight:500;white-space:nowrap}
+.seg{background:var(--gray);border-radius:6px;padding:1px 7px;font-family:ui-monospace,Consolas,monospace;font-size:11.5px}
+ol.five{margin:0;padding-left:20px;font-size:13.2px;color:var(--muted);line-height:1.95}
+ol.five b{color:var(--ink)}
+ol.five code{background:var(--gray);border-radius:5px;padding:1px 6px;font-size:11.5px;font-family:ui-monospace,Consolas,monospace}
+ul.rules{margin:0;padding-left:19px;font-size:13px;color:var(--muted);line-height:1.9}
+ul.rules b{color:var(--ink)}
+
+footer{padding:30px 0 56px;color:var(--soft);font-size:12px;line-height:1.9;border-top:1px solid var(--line);margin-top:24px}
+@media(max-width:820px){
+  .fields{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  h1{font-size:22px}
+}
+@media print{
+  .btns,textarea,.no-print{display:none!important}
+  .item{page-break-inside:avoid;break-inside:avoid}
+  .fields select,.fields input{border:0;border-bottom:1px solid #ddd;border-radius:0;background:transparent;appearance:none;-webkit-appearance:none;padding:0 2px}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="eyebrow">regdoc-commons · v0.1 · 单文件 · 离线</span>
+    <h1>发补应答拆解</h1>
+    <p class="lede">
+      把发补通知原文贴进来，自动拆成单条，逐条归类、定级、指派、列证据。
+      导出的是拆解表，不是应答稿——应答稿必须人写，工具只保证「不漏条、不定错级」。
+    </p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="step no-print">
+    <h2><i>1</i>粘贴发补通知原文</h2>
+    <p class="hint">支持「1.」「(1)」「4.1」「一、」「•」「-」等编号；没有编号时按空行拆分。<b>原函编号原样保留在每条左边（4.1 就是 4.1），导出时单独成列。</b>未编号段落（函件抬头、总述、补充要求）会单独列为一条并标注「原文未编号」，不会被丢弃——请逐条确认是否漏答。</p>
+    <textarea id="src" placeholder="把公告机构发补函 / 审评补正通知的正文整段粘贴到这里……"></textarea>
+    <div class="btns">
+      <button class="b b-ghost" id="demo">载入示例</button>
+      <button class="b b-pri" id="split">开始拆条</button>
+      <button class="b b-ghost" id="clear">清空</button>
+      <button class="b b-ghost" id="export">导出拆解表 CSV</button>
+    </div>
+    <div class="savehint" id="savehint"></div>
+  </div>
+
+  <div id="demohint" style="display:none;background:#f4f7fb;border:1px solid #d6e0ee;border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:12.5px;line-height:1.65;color:#3c4a5c"></div>
+  <div id="list"></div>
+
+  <div class="ref">
+    <h3>归类框架：十个常见类型</h3>
+    <p class="sub">
+      这是归类维度，不是「公告机构必问清单」。每条的真实内容以发补原文为准——不同机构、不同产品差别很大。
+    </p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>类型</th><th>应答需要的最小证据集</th><th>最常见的返工点</th></tr></thead>
+        <tbody>
+          <tr><td class="c">临床评价</td><td>CER 更新版、文献检索方案与结果、等同性论证表、PMCF 计划</td><td>等同性只做表面对比，缺桥接证据</td></tr>
+          <tr><td class="c">生物相容性</td><td>按 ISO 10993 系列的测试报告、材料表征、浸提条件依据、与既往产品比对</td><td>用了已过期的标准版本做测试</td></tr>
+          <tr><td class="c">性能与检验</td><td>产品技术要求、型式检验报告、适用标准清单与偏离说明</td><td>检验方法与技术要求里写的方法不一致</td></tr>
+          <tr><td class="c">风险管理</td><td>ISO 14971 风险管理文档、剩余风险可接受性判定、受益-风险分析</td><td>未覆盖使用错误与合理可预见误用</td></tr>
+          <tr><td class="c">灭菌与包装</td><td>灭菌验证报告、SAL 依据、无菌屏障系统验证、再处理说明（如适用）</td><td>验证时的装载方式与实际生产不一致</td></tr>
+          <tr><td class="c">货架寿命</td><td>加速老化或实时老化方案与报告、包装完整性测试</td><td>老化温度与材料特性不匹配</td></tr>
+          <tr><td class="c">标签与说明书</td><td>标签样稿、符号符合性说明（ISO 15223-1）、目标市场语言版本、IFU 对照表</td><td>译文与原文内容不一致，或符号自行改绘</td></tr>
+          <tr><td class="c">UDI 与数据一致性</td><td>UDI-DI 清单、Basic UDI-DI 分配依据、与证书及技术文档的一致性说明</td><td>UDI-DI 与型号未一一对应</td></tr>
+          <tr><td class="c">质量体系与设计控制</td><td>DHF 索引、设计变更记录、供应商评价、CAPA 记录</td><td>设计输入没追溯到设计输出与验证</td></tr>
+          <tr><td class="c">软件与网络安全</td><td>软件生存周期文档、软件安全等级判定、网络安全测试报告</td><td>安全等级判定缺依据链</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ref">
+    <h3>应答的固定五段结构</h3>
+    <p class="sub">这是我们整理的一个应答结构——<b>是惯例，不是法规要求</b>。结构稳定能让审查的人更快定位到证据，但结论本身取决于证据是否成立，我们不对任何审评结果作任何预期。</p>
+    <ol class="five">
+      <li><b>确认与理解。</b>先把问题复述一遍，确认理解一致。这一步能挡掉一半「答非所问」。</li>
+      <li><b>已采取的措施。</b>写<code>做了什么</code>，不写<code>将会做什么</code>。承诺在未来时态的应答基本等于没答。</li>
+      <li><b>证据索引。</b>每条都给出文件编号、版本、日期、页码。<code>见附件</code>三个字没有人会去翻。</li>
+      <li><b>变更影响评估。</b>这次改动影响了哪些文件、是否触发重大变更判定、是否需要更新证书。</li>
+      <li><b>结论声明。</b>明确一句：本项已关闭 / 需后续跟踪（并写明跟踪方式与时间点）。</li>
+    </ol>
+  </div>
+
+  <div class="ref">
+    <h3>拆解时的四条硬规矩</h3>
+    <ul class="rules">
+      <li><b>一条不许合并。</b>发补函里一个编号就是一项，哪怕看起来是同一件事，也要分开列、分开答。合答会被认为未逐项答复。</li>
+      <li><b>严重度当场定。</b>关键项（涉及安全有效性证据缺失）必须当天进流程；重要项次之；纯格式澄清放最后。定级错了会导致资源错配。</li>
+      <li><b>「谁补证据」写清楚。</b>企业技术人员补的、我们写的、要第三方实验室出的，三者时间完全不一样，混在一起排期必崩。</li>
+      <li><b>答不了的先标出来。</b>确实无法满足要求的，要在应答里明说并提供替代方案，不要含糊过去——含糊是下一轮发补的种子。</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p><b>本工具只做拆解与归类，不生成应答内容。</b>应答涉及技术判定与法律表述，必须由有资质的人员撰写并签核。</p>
+    <p>数据在本地浏览器处理，不上传服务器。自动保存依赖浏览器本地存储，若提示不可用请及时导出 CSV。</p>
+    <p>v0.1 · 2026-10-21 · 后续计划：真实案例库字段规范、按类型统计的历史频次、与企业内部文件编号体系对接。</p>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  var src=document.getElementById('src');
+  var list=document.getElementById('list');
+  var savehint=document.getElementById('savehint');
+  var KEY='mdr_deficiency_v1';
+  var items=[];
+  var canStore=true;
+
+  var CATS=['临床评价','生物相容性','性能与检验','风险管理','灭菌与包装','货架寿命','标签与说明书','UDI 与数据一致性','质量体系与设计控制','软件与网络安全','其他'];
+  var SEVS=[['crit','关键'],['imp','重要'],['min','次要']];
+
+  function tryLoad(){
+    try{
+      var raw=localStorage.getItem(KEY);
+      if(raw){
+        var o=JSON.parse(raw);
+        if(o&&o.items&&o.items.length){
+          src.value=o.src||'';
+          var lost=0;
+          items=o.items.map(function(x){
+            if(typeof x==='string') return {num:'',marked:false,raw:x,cat:guessCat(x),sev:guessSev(x),owner:'待定',evidence:''};
+            if(!x.num) lost++;
+            return {
+              num:x.num||'', marked:!!x.marked,
+              raw:(x.raw!=null?x.raw:(x.text||'')),
+              cat:x.cat||'其他',
+              sev:(x.sev==='crit'||x.sev==='imp'||x.sev==='min')?x.sev:'min',
+              owner:x.owner||'待定', evidence:x.evidence||''
+            };
+          });
+          render();
+          if(lost) savehint.textContent='检测到旧版本保存的数据：'+lost+' 条缺少原函编号（旧格式未记录）。建议核对原文后重新点「开始拆条」。';
+        }
+      }
+      savehint.textContent='自动保存在本机浏览器，换电脑或清缓存会丢失，重要内容请导出 CSV。';
+    }catch(e){ canStore=false; savehint.textContent='当前环境不支持自动保存（可能是在本地文件里打开）。请用「导出拆解表 CSV」保存结果。'; }
+  }
+  function save(){
+    if(!canStore) return;
+    try{ localStorage.setItem(KEY,JSON.stringify({src:src.value,items:items})); }catch(e){ canStore=false; savehint.textContent='自动保存失败，请导出 CSV 保存。'; }
+  }
+
+  // Returns the original item marker and the remaining text, or null.
+  // Sub-numbering (4.1, 4.2) is matched first, so it is never re-read as 1 / 2.
+  function getMark(ln){
+    var m;
+    if((m=ln.match(/^\s*(\d{1,2}(?:\.\d{1,2})+)\s*[\.\):：]?\s*/))) return {num:m[1],rest:ln.slice(m[0].length)};
+    if((m=ln.match(/^\s*([（(]\s*\d{1,2}\s*[)）])\s*/))) return {num:m[1].replace(/\s/g,''),rest:ln.slice(m[0].length)};
+    if((m=ln.match(/^\s*(\d{1,2})\s*[\.\)、:：]\s*/))) return {num:m[1],rest:ln.slice(m[0].length)};
+    if((m=ln.match(/^\s*([一二三四五六七八九十]{1,3})\s*[、\.]\s*/))) return {num:m[1],rest:ln.slice(m[0].length)};
+    if((m=ln.match(/^\s*(item\s*\d{1,2})\s*[:\.]\s*/i))) return {num:m[1],rest:ln.slice(m[0].length)};
+    if((m=ln.match(/^\s*([•·▪])\s+/))) return {num:m[1],rest:ln.slice(m[0].length)};
+    if((m=ln.match(/^\s*([-–—])\s+/))) return {num:m[1],rest:ln.slice(m[0].length)};
+    return null;
+  }
+
+  // Returns [{num, text, marked}]. The original marker is kept so every row
+  // can be traced back to the letter. Unnumbered blocks are kept, not dropped.
+  function splitItems(text){
+    var lines=String(text||'').replace(/\r\n/g,'\n').split('\n');
+    var chunks=[],cur=null,anyMarked=false;
+    for(var i=0;i<lines.length;i++){
+      var ln=lines[i];
+      if(!ln.trim()){ if(cur) cur.buf.push(''); continue; }
+      var mk=getMark(ln);
+      if(mk){
+        if(cur&&cur.buf.join('').trim()) chunks.push(cur);
+        cur={num:mk.num,buf:[mk.rest],marked:true}; anyMarked=true;
+      }else{
+        if(!cur) cur={num:'',buf:[ln],marked:false};
+        else cur.buf.push(ln);
+      }
+    }
+    if(cur&&cur.buf.join('').trim()) chunks.push(cur);
+
+    var out=chunks.map(function(c){
+      return {num:c.num||'',text:c.buf.join('\n').trim(),marked:!!c.marked};
+    }).filter(function(c){ return c.text; });
+
+    if(anyMarked) return out;
+
+    var paras=String(text||'').split(/\n\s*\n/).map(function(s){return s.trim();}).filter(Boolean);
+    if(paras.length>1) return paras.map(function(t){ return {num:'',text:t,marked:false}; });
+    var whole=out.length?out.map(function(c){return c.text;}).join('\n'):'';
+    return whole?[{num:'',text:whole,marked:false}]:[];
+  }
+
+  function guessCat(t){
+    var s=String(t||'');
+    if(/临床评价|等同性|文献检索|clinical evaluation|equivalence|predicate|bridging|literature/i.test(s)) return '临床评价';
+    if(/生物相容|10993|细胞毒|致敏|biocompat|cytotox|sensitiz|irritat/i.test(s)) return '生物相容性';
+    if(/风险管理|14971|剩余风险|risk management|residual risk|hazard/i.test(s)) return '风险管理';
+    if(/灭菌|无菌|SAL|无菌屏障|steril|aseptic|bioburden/i.test(s)) return '灭菌与包装';
+    if(/货架|老化|有效期|shelf|aging|stability/i.test(s)) return '货架寿命';
+    if(/标签|说明书|IFU|符号|label|instruction for use|symbol/i.test(s)) return '标签与说明书';
+    if(/UDI|EUDAMED|GUDID|注册数据|registered in|database/i.test(s)) return 'UDI 与数据一致性';
+    if(/软件|网络|62304|software|cybersecurity|security/i.test(s)) return '软件与网络安全';
+    if(/体系|设计控制|DHF|CAPA|变更控制|quality system|design control|change control|supplier/i.test(s)) return '质量体系与设计控制';
+    if(/性能|检验|技术要求|测试报告|performance|test report|standard/i.test(s)) return '性能与检验';
+    return '其他';
+  }
+
+  function guessSev(t){
+    var s=String(t||'');
+    if(/does not adequately|inadequat|outdated|does not address|not addressed|does not match|missing|lack of|insufficient|no evidence|fail|未提供|未覆盖|未包含|缺失|不足|未满足|无法|已废止|作废|过期|不符/.test(s)) return 'crit';
+    if(/does not correspond|inconsistent|unclear|clarif|discrepan|differ|incomplete|不一致|未说明|不完整/.test(s)) return 'imp';
+    return 'min';
+  }
+
+  function render(){
+    list.innerHTML='';
+    var crit=0,imp=0,min=0;
+    items.forEach(function(it){ if(it.sev==='crit')crit++; else if(it.sev==='imp')imp++; else min++; });
+
+    var head=document.createElement('div');
+    head.className='step';
+    head.innerHTML='<div class="stats">'
+      +'<div class="k"><b>'+items.length+'</b><span>拆出条目</span></div>'
+      +'<div class="k c"><b>'+crit+'</b><span>关键</span></div>'
+      +'<div class="k m"><b>'+imp+'</b><span>重要</span></div>'
+      +'<div class="k g"><b>'+min+'</b><span>次要</span></div>'
+      +'</div>';
+    if(items.length) list.appendChild(head);
+
+    items.forEach(function(it,idx){
+      var d=document.createElement('div');
+      d.className='item '+(it.sev||'min');
+
+      var hd=document.createElement('div'); hd.className='hd';
+      var no=document.createElement('div'); no.className='no';
+      no.textContent=(it.num||'—');
+      no.title=it.num?('原文编号 '+it.num):'原文未编号';
+      var raw=document.createElement('div'); raw.className='raw'; raw.textContent=it.raw;
+      if(!it.marked && !it.num){
+        var tag=document.createElement('span'); tag.textContent='原文未编号';
+        tag.style.cssText='display:inline-block;font-size:10.5px;color:#854F0B;background:#FAEEDA;border-radius:5px;padding:1px 6px;margin-left:6px;white-space:nowrap';
+        raw.appendChild(tag);
+      }
+      hd.appendChild(no); hd.appendChild(raw); d.appendChild(hd);
+
+      var fs=document.createElement('div'); fs.className='fields';
+
+      var f1=document.createElement('div'); f1.className='f';
+      var l1=document.createElement('label'); l1.textContent='类型（工具建议，可改）';
+      var s1=document.createElement('select');
+      CATS.forEach(function(c){ var o=document.createElement('option'); o.value=c; o.textContent=c; if(it.cat===c) o.selected=true; s1.appendChild(o); });
+      s1.addEventListener('change',function(){ it.cat=s1.value; save(); });
+      f1.appendChild(l1); f1.appendChild(s1);
+
+      var f2=document.createElement('div'); f2.className='f';
+      var l2=document.createElement('label'); l2.textContent='严重度（工具建议，可改）';
+      var s2=document.createElement('select');
+      SEVS.forEach(function(p){ var o=document.createElement('option'); o.value=p[0]; o.textContent=p[1]; if(it.sev===p[0]) o.selected=true; s2.appendChild(o); });
+      s2.addEventListener('change',function(){ it.sev=s2.value; d.className='item '+it.sev; save(); });
+      f2.appendChild(l2); f2.appendChild(s2);
+
+      var f3=document.createElement('div'); f3.className='f';
+      var l3=document.createElement('label'); l3.textContent='谁补证据';
+      var s3=document.createElement('select');
+      ['企业技术人员','我方撰写','第三方实验室','待定'].forEach(function(c){ var o=document.createElement('option'); o.value=c; o.textContent=c; if(it.owner===c) o.selected=true; s3.appendChild(o); });
+      s3.addEventListener('change',function(){ it.owner=s3.value; save(); });
+      f3.appendChild(l3); f3.appendChild(s3);
+
+      var f4=document.createElement('div'); f4.className='f wide';
+      var l4=document.createElement('label'); l4.textContent='需补证据 / 对应文件（写编号与版本）';
+      var i4=document.createElement('input'); i4.type='text'; i4.value=it.evidence||''; i4.placeholder='例：CER v3.2 §5.3 / 生物相容性报告 TR-2026-014';
+      i4.addEventListener('input',function(){ it.evidence=i4.value; save(); });
+      f4.appendChild(l4); f4.appendChild(i4);
+
+      fs.appendChild(f1); fs.appendChild(f2); fs.appendChild(f3); fs.appendChild(f4);
+      d.appendChild(fs);
+      list.appendChild(d);
+    });
+  }
+
+  var _sv=null;
+  src.addEventListener('input',function(){ clearTimeout(_sv); _sv=setTimeout(save,400); });
+
+  document.getElementById('split').addEventListener('click',function(){
+    var arr=splitItems(src.value);
+    if(!arr.length){ list.innerHTML='<div class="step"><div class="nores">没拆出内容。请先粘贴发补通知原文。</div></div>'; return; }
+    items=arr.map(function(o){
+      return {num:o.num||'',marked:!!o.marked,raw:o.text,cat:guessCat(o.text),sev:guessSev(o.text),owner:'待定',evidence:''};
+    });
+    render(); save();
+    if(items.length===1 && src.value.length>200){
+      list.insertAdjacentHTML('afterbegin','<div class="step"><div class="nores">没有识别到编号，已把整段作为 1 条处理。若函件用的是「Q1」「问题一」「①」这类格式，请先在每条前加「1. 」「2. 」再试一次。</div></div>');
+    }
+  });
+
+  document.getElementById('export').addEventListener('click',function(){
+    if(!items.length){ alert('先点「开始拆条」。'); return; }
+    var L=['序号,原文编号,类型,严重度,谁补证据,需补证据/对应文件,问题原文'];
+    // Neutralise leading characters Excel would evaluate (CSV injection, OWASP).
+    function q(v){
+      var t=String(v==null?'':v);
+      if(/^[=+\-@\t\r]/.test(t)) t="'"+t;
+      return '"'+t.replace(/"/g,'""')+'"';
+    }
+    items.forEach(function(it,i){
+      L.push([i+1,q(it.num||''),q(it.cat),q({crit:'关键',imp:'重要',min:'次要'}[it.sev]||''),q(it.owner),q(it.evidence||''),q(String(it.raw||'').replace(/\n/g,' '))].join(','));
+    });
+    var blob=new Blob(['\uFEFF'+L.join('\n')],{type:'text/csv;charset=utf-8;'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='发补拆解表-'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); },1500);
+  });
+
+  document.getElementById('clear').addEventListener('click',function(){
+    src.value=''; items=[]; list.innerHTML=''; save();
+  });
+
+  var DEMO=[
+    'Technical Documentation Deficiency Letter',
+    '',
+    '1. Clinical Evaluation: The clinical evaluation report does not adequately justify the equivalence claim with the predicate device. Please provide a detailed comparison table and bridging data.',
+    '2. Biocompatibility: The cytotoxicity test report references an outdated version of ISO 10993-5. Please provide a test report compliant with the current standard version.',
+    '3. Risk Management: The risk management file does not address use errors during the intraoperative assembly step.',
+    '4. Labelling: The IFU provided in German does not correspond to the English master version in Section 4.2. Please clarify.',
+    '5. UDI: The UDI-DI listed for model TX-100 does not match the device description registered in EUDAMED.'
+  ].join('\n');
+
+  document.getElementById('demo').addEventListener('click',function(){
+    if(items.length && !confirm('载入示例会替换当前原文并重新拆条，已填的类型、严重度、证据编号会丢失。继续？')) return;
+    src.value=DEMO;
+    document.getElementById('split').click();
+    var dh=document.getElementById('demohint');
+    if(dh){ dh.style.display='block'; dh.innerHTML='<b>示例说明（常驻，不会被结果覆盖）</b>：5 条英文发补，埋了 3 处「关键」+ 2 处「重要」。<b>第 2 条故意引用已废止版本的 ISO 10993-5</b>，用来看「关键」级是怎么标出来的。<b>每条左边的数字是原函编号；类型和严重度是工具按关键词给的建议值</b>，请逐条核对后再导出。'; }
+  });
+
+  tryLoad();
+})();
+</script>
+
+</body>
+</html>

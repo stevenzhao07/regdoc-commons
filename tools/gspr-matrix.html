@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSPR 条款对照清单 · 骨架 v0.1</title>
+<style>
+:root{
+  --ink:#0a2540; --muted:#425466; --soft:#697386; --line:#e6ebf1;
+  --bg:#f6f9fc; --pri:#635bff; --ok:#0e9f6e; --okbg:#e7f7f1;
+  --warn:#b45309; --warnbg:#fdf3e7; --red:#c0392b; --redbg:#fdecea;
+  --gray:#f1f4f8; --shadow:0 1px 2px rgba(10,37,64,.04),0 10px 30px -14px rgba(10,37,64,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.65}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+header{padding:44px 0 24px;background:radial-gradient(720px 280px at 8% -20%,rgba(99,91,255,.14),transparent 62%)}
+.eyebrow{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);background:#fff;border:1px solid #e2e0ff;border-radius:99px;padding:4px 11px;margin-bottom:13px;font-weight:500}
+h1{font-size:27px;line-height:1.32;margin:0 0 8px;letter-spacing:-.02em;font-weight:600}
+.lede{font-size:13.8px;color:var(--muted);margin:0;max-width:800px}
+.warnbar{background:var(--warnbg);border:1px solid #f3e3c9;border-radius:11px;padding:12px 16px;font-size:12.6px;color:#7a4a12;margin-top:16px;max-width:860px}
+.warnbar b{color:#5d3708}
+
+.bar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px 0;margin-top:22px}
+.barin{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font-size:12.2px;color:var(--soft)}
+.stats b{color:var(--ink);font-size:14px;font-weight:600;margin-right:3px}
+.stats .r b{color:var(--red)} .stats .g b{color:var(--ok)} .stats .a b{color:var(--warn)}
+.btns{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+button.b{border:none;border-radius:9px;padding:8px 15px;font-size:12.6px;font-weight:500;font-family:inherit;cursor:pointer;transition:.15s}
+.b-pri{background:var(--pri);color:#fff}
+.b-pri:hover{background:#554de0}
+.b-ghost{background:#fff;border:1px solid var(--line)!important;color:var(--ink)}
+.b-ghost:hover{border-color:#c9c6ff!important;color:var(--pri)}
+.b-ghost.on{background:var(--pri);border-color:var(--pri)!important;color:#fff}
+
+.chap{margin:26px 0 10px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px}
+.chap span{font-size:11px;background:var(--gray);color:var(--soft);border-radius:6px;padding:2px 9px;font-weight:500}
+
+.row{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:9px;box-shadow:var(--shadow);overflow:hidden}
+.row.red{border-color:#f0b8b2;border-left:3px solid var(--red)}
+.row.gap{border-left:3px solid var(--warn)}
+.row.done{border-left:3px solid var(--ok)}
+.rh{display:flex;gap:11px;align-items:flex-start;padding:12px 15px;cursor:pointer}
+.rno{flex:0 0 auto;width:34px;height:26px;border-radius:7px;background:var(--gray);color:var(--muted);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.rtitle{flex:1;min-width:0}
+.rtitle b{display:block;font-size:13.2px;font-weight:500}
+.rtitle em{font-style:normal;font-size:11.3px;color:var(--soft);display:block;margin-top:1px}
+.rhint{flex:0 0 auto;font-size:10.5px;color:var(--soft);background:var(--gray);border-radius:6px;padding:2px 8px;margin-top:3px;white-space:nowrap}
+.rb{padding:0 15px 14px;display:none}
+.row.open .rb{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding-left:45px}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:10.8px;color:var(--soft);font-weight:500}
+.f select,.f input{border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.3px;font-family:inherit;color:var(--ink);background:#fff;outline:none;width:100%}
+.f select:focus,.f input:focus{border-color:#c9c6ff}
+.f input.miss{border-color:#e08b83;background:#fff7f6}
+.f.wide{grid-column:span 4}
+
+footer{padding:28px 0 54px;color:var(--soft);font-size:12px;line-height:1.9;border-top:1px solid var(--line);margin-top:26px}
+.ref{background:#fff;border:1px solid var(--line);border-radius:13px;padding:20px 24px;box-shadow:var(--shadow);margin:24px 0}
+.ref h3{font-size:13.6px;margin:0 0 10px;font-weight:600}
+.ref ol,.ref ul{margin:0;padding-left:19px;font-size:12.9px;color:var(--muted);line-height:1.9}
+.ref b{color:var(--ink)}
+.ref code{background:var(--gray);border-radius:5px;padding:1px 6px;font-family:ui-monospace,Consolas,monospace;font-size:11.3px}
+@media(max-width:860px){
+  .grid{grid-template-columns:1fr 1fr;padding-left:0}
+  .f.wide{grid-column:span 2}
+  h1{font-size:21px}
+  .btns{margin-left:0}
+}
+@media print{
+  .bar{display:block!important;position:static;background:#fff;border:0;margin:0 0 6px}
+  .bar .btns{display:none!important}
+  .rb{display:block!important}
+  .row{page-break-inside:avoid;break-inside:avoid}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="eyebrow">regdoc-commons · v0.1 · 单文件 · 离线</span>
+    <h1>GSPR 条款对照清单</h1>
+    <p class="lede">
+      MDR 附录 I 共 23 条，分三章：第 I 章第 1–9 条（一般要求）、第 II 章第 10–22 条（设计与制造）、第 III 章第 23 条（随附信息）。
+      <b>点任意一条标题展开填写。</b>第 I 章（第 9 条除外）与第 III 章对所有器械适用；第 II 章按器械技术特性逐条判断——不适用也必须写明理由，不能跳过。
+    </p>
+    <div class="warnbar">
+      <b>条款原文不随本工具分发，也不会自动下载。</b>你可以把 EUR-Lex 官方文本（Regulation (EU) 2017/745, Annex I）的原文粘到每条的「条款原文」格里，方便一条条对着写；不粘也能用，这一格不参与任何自动判定。凭记忆写法规原文，比不做更危险。
+      第 10–22 条的英文为官方条款主题的要点摘写（非逐字引用）；第 1–9 条与第 23 条为速览主题。<b>第 9 条仅适用于附录 XVI 产品</b>（无预期医疗用途的产品）——常规器械应在该条标注「不适用」并写一行理由，而不是跳过。
+    </div>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="wrap barin">
+    <div class="stats" id="stats"></div>
+    <div class="btns">
+      <button class="b b-ghost" id="demo">载入示例（3 条）</button>
+      <button class="b b-ghost" id="filter">只看缺口与未填</button>
+      <button class="b b-ghost" id="expand">全部展开</button>
+      <button class="b b-ghost" id="export">导出 GSPR 对照表 CSV</button>
+      <button class="b b-ghost" id="reset">清空已填写内容</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" id="main"></main>
+<div class="wrap"><p style="font-size:12px;line-height:1.7;color:#5b6779;margin:10px 0 4px">
+  <b>颜色只表示这一行自己填得怎么样，不是合规结论。</b>
+  绿＝已判「符合」且写了证据；黄＝「部分符合」或「不符合（待整改）」；红＝选了「不适用」但没写理由（审查方最先质疑的就是这一条）。
+</p></div>
+<div class="wrap"><p id="savehint" style="display:none;color:#b42318;font-size:12px;margin:4px 0 8px"></p></div>
+
+<div class="wrap">
+  <div class="ref">
+    <h3>录入四条规则</h3>
+    <ol>
+      <li><b>不适用的必须写理由。</b>「不适用」是一个会被审查方检验的主张，不是可以省略的复选框。空着理由的行会被标红。</li>
+      <li><b>证据要给到文件号、版本、章节、页码。</b>只写「见某某报告」等于没写——审查的人不会去翻整本报告找一句话。</li>
+      <li><b>符合性方法优先用协调标准。</b>标准被列入欧盟官方公报时，应用它可获得符合性推定；无标准可用的，才写通用规范或其他经验证方案。</li>
+      <li><b>这份表是要维护的，不是一次填完的。</b>设计变更、标准换版、上市后信号，都可能让某条从「符合」变回「缺口」。</li>
+    </ol>
+  </div>
+
+  <div class="ref">
+    <h3>三个最容易出问题的地方</h3>
+    <ul>
+      <li><b>从 MDD 基本要求直接搬过来的清单。</b>MDR 的清单扩充过，尤其软件与信息安全（第 17 条）、非专业用户（第 22 条）、关注物质（第 10 条）——直接沿用旧表会漏。</li>
+      <li><b>通用式「不适用」。</b>一句「本产品不涉及」写十条，会被直接质疑。理由必须落到这个产品的预期用途、技术特性上。</li>
+      <li><b>GSPR 表、风险管理文档、临床评价三者对不上。</b>这是审查时最常被抓的一致性缺口——同一风险在三个文件里的表述必须能互相指认。</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p><b>本表为骨架，不含条款原文，也不构成合规判定。</b>适用性判断与符合性结论须由企业具备资质的技术人员确认并签署。</p>
+    <p>数据在本地浏览器处理，不上传服务器。自动保存依赖浏览器本地存储，换设备请先导出 CSV。</p>
+    <p>结构依据：Regulation (EU) 2017/745 Annex I（23 条 / 三章）；附录 II 第 4 节要求技术文档说明「哪些 GSPR 适用、不适用的理由、符合性方法、所用标准或规范、证据文件的确切标识」。以官方文本为准。</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var DATA=[
+    {no:1,ch:'I',zh:'安全与性能',en:'Safety and performance',hint:'全适用'},
+    {no:2,ch:'I',zh:'风险降至尽可能低',en:'Reduce risks as far as possible',hint:'全适用'},
+    {no:3,ch:'I',zh:'风险管理体系',en:'Risk management system',hint:'全适用'},
+    {no:4,ch:'I',zh:'风险控制措施',en:'Risk control measures',hint:'全适用'},
+    {no:5,ch:'I',zh:'使用错误的风险',en:'Risks related to use error',hint:'全适用'},
+    {no:6,ch:'I',zh:'使用寿命内的性能',en:'Performance over device lifetime',hint:'全适用'},
+    {no:7,ch:'I',zh:'运输与储存',en:'Transport and storage',hint:'全适用'},
+    {no:8,ch:'I',zh:'受益-风险可接受性',en:'Benefit-risk acceptability',hint:'全适用'},
+    {no:9,ch:'I',zh:'附录 XVI 产品特别规定',en:'Products without intended medical purpose',hint:'仅附录 XVI'},
+    {no:10,ch:'II',zh:'化学、物理与生物学特性',en:'Chemical, physical and biological properties',hint:'按技术特性'},
+    {no:11,ch:'II',zh:'感染与微生物污染',en:'Infection and microbial contamination',hint:'按技术特性'},
+    {no:12,ch:'II',zh:'含药物成分的器械',en:'Devices incorporating a medicinal substance',hint:'按技术特性'},
+    {no:13,ch:'II',zh:'含生物源材料的器械',en:'Materials of biological origin',hint:'按技术特性'},
+    {no:14,ch:'II',zh:'结构与环境保护',en:'Construction and environmental properties',hint:'按技术特性'},
+    {no:15,ch:'II',zh:'诊断与测量功能',en:'Devices with a measuring function',hint:'按技术特性'},
+    {no:16,ch:'II',zh:'辐射防护',en:'Protection against radiation',hint:'按技术特性'},
+    {no:17,ch:'II',zh:'电子可编程系统与软件',en:'Electronic programmable systems and software',hint:'按技术特性'},
+    {no:18,ch:'II',zh:'有源器械与互联器械',en:'Active devices and devices connected to them',hint:'按技术特性'},
+    {no:19,ch:'II',zh:'有源植入器械的特别要求',en:'Active implantable devices',hint:'按技术特性'},
+    {no:20,ch:'II',zh:'机械与热风险防护',en:'Protection against mechanical and thermal risks',hint:'按技术特性'},
+    {no:21,ch:'II',zh:'能量或物质供给的风险防护',en:'Risks from energy or substances administered',hint:'按技术特性'},
+    {no:22,ch:'II',zh:'非专业用户使用的风险防护',en:'Devices for use by lay persons',hint:'按技术特性'},
+    {no:23,ch:'III',zh:'标签与使用说明书',en:'Label and instructions for use',hint:'全适用'}
+  ];
+
+  var KEY='gspr_matrix_v1';
+  var state={};
+  var filterGap=false;
+  var main=document.getElementById('main');
+  var statsEl=document.getElementById('stats');
+
+  DATA.forEach(function(d){
+    state[d.no]={app:'',reason:'',method:'',std:'',evid:'',loc:'',verdict:'',owner:'',note:''};
+  });
+
+  function load(){
+    try{
+      var raw=localStorage.getItem(KEY);
+      if(raw){ var o=JSON.parse(raw); if(o){ Object.keys(o).forEach(function(k){ if(state[k]) state[k]=Object.assign(state[k],o[k]); }); } }
+    }catch(e){}
+  }
+  function save(){
+    try{ localStorage.setItem(KEY,JSON.stringify(state)); }
+    catch(e){
+      var h=document.getElementById('savehint');
+      if(h){ h.style.display='block'; h.textContent='无法自动保存（浏览器禁用了本地存储）。请立即点「导出 GSPR 对照表 CSV」，否则刷新会丢失全部填写。'; }
+    }
+  }
+
+  function isGap(d,s){ return s.verdict==='part'||s.verdict==='gap'; }
+  function isBlank(s){ return !s.app||!s.verdict; }
+  function missingReason(s){ return s.app==='na' && !String(s.reason||'').trim(); }
+
+  var openRows={};
+
+  function render(){
+    var app=0,napp=0,okc=0,part=0,gap=0,blank=0,miss=0;
+    DATA.forEach(function(d){
+      var s=state[d.no];
+      if(s.app==='yes'||s.app==='part') app++;
+      if(s.app==='na') napp++;
+      if(s.verdict==='ok') okc++;
+      if(s.verdict==='part') part++;
+      if(s.verdict==='gap') gap++;
+      if(isBlank(s)) blank++;
+      if(missingReason(s)) miss++;
+    });
+    statsEl.innerHTML='<span><b>'+DATA.length+'</b>条</span>'
+      +'<span><b>'+app+'</b>适用</span>'
+      +'<span><b>'+napp+'</b>不适用</span>'
+      +'<span class="g"><b>'+okc+'</b>符合</span>'
+      +'<span class="a"><b>'+part+'</b>部分符合</span>'
+      +'<span class="r"><b>'+gap+'</b>缺口</span>'
+      +'<span><b>'+blank+'</b>未判定</span>'
+      +(miss?'<span class="r"><b>'+miss+'</b>缺理由</span>':'');
+
+    main.innerHTML='';
+    var lastCh='';
+    DATA.forEach(function(d){
+      var s=state[d.no];
+      if(filterGap && !(isGap(d,s)||isBlank(s)||missingReason(s))) return;
+
+      if(d.ch!==lastCh){
+        var ch=document.createElement('div');
+        ch.className='chap';
+        var cn=d.ch==='I'?'第 I 章 · 一般要求（第 1–9 条）':(d.ch==='II'?'第 II 章 · 设计与制造要求（第 10–22 条）':'第 III 章 · 随附信息（第 23 条）');
+        ch.innerHTML=cn+'<span>'+(d.ch==='II'?'按技术特性逐条判断':(d.ch==='I'?'对全部器械适用（第 9 条除外）':'对全部器械适用'))+'</span>';
+        main.appendChild(ch);
+        lastCh=d.ch;
+      }
+
+      var row=document.createElement('div');
+      row.className='row'+(missingReason(s)?' red':(isGap(d,s)?' gap':(s.verdict==='ok'?' done':'')));
+
+      var hd=document.createElement('div'); hd.className='rh';
+      hd.innerHTML='<div class="rno">'+d.no+'</div>'
+        +'<div class="rtitle"><b>'+d.zh+'</b><em>'+d.en+'</em></div>'
+        +'<div class="rhint">'+d.hint+'</div>';
+      hd.addEventListener('click',function(){ openRows[d.no]=row.classList.toggle('open'); });
+      if(openRows[d.no]) row.classList.add('open');
+      row.appendChild(hd);
+
+      var body=document.createElement('div'); body.className='rb';
+      var grid=document.createElement('div'); grid.className='grid';
+
+      function field(label,key,type,opts,wide,cls){
+        var f=document.createElement('div'); f.className='f'+(wide?' wide':'');
+        var l=document.createElement('label'); l.textContent=label;
+        var el;
+        if(type==='select'){
+          el=document.createElement('select');
+          var o0=document.createElement('option'); o0.value=''; o0.textContent='— 未选 —'; el.appendChild(o0);
+          opts.forEach(function(p){ var o=document.createElement('option'); o.value=p[0]; o.textContent=p[1]; if(s[key]===p[0]) o.selected=true; el.appendChild(o); });
+        }else if(type==='textarea'){
+          el=document.createElement('textarea'); el.rows=2; el.value=s[key]||'';
+          el.style.minHeight='58px'; el.style.resize='vertical';
+          if(cls) el.className=cls;
+        }else{
+          el=document.createElement('input'); el.type='text'; el.value=s[key]||'';
+          if(cls) el.className=cls;
+        }
+        el.addEventListener('change',function(){
+          s[key]=el.value; save();
+          if(key==='app'||key==='reason'){ render(); }
+        });
+        el.addEventListener('input',function(){ s[key]=el.value; save(); });
+        f.appendChild(l); f.appendChild(el);
+        grid.appendChild(f);
+        return el;
+      }
+
+      field('适用性','app','select',[['yes','适用'],['part','部分适用'],['na','不适用']]);
+      field('符合性结论','verdict','select',[['ok','符合'],['part','部分符合'],['gap','不符合（待整改）']]);
+      field('符合性方法（用什么证明）','method','select',[['std','协调标准（优先）'],['cs','通用规范'],['other','其他方法（需说明依据）'],['none','尚未确定']]);
+      field('责任人（内部跟进）','owner','text');
+      var reasonEl=field('不适用理由（选「不适用」时必填，写清为什么不适用于本产品；选不适用时，符合性结论与证据栏可留空）','reason','textarea',null,true,(missingReason(s)?'miss':''));
+      field('条款原文（可选，从 EUR-Lex 粘贴，不参与任何自动判定）','ref','textarea',null,true);
+      field('引用标准（标准号 + 版本 + 条款号）','std','text',null,true);
+      field('证据文件编号（含版本）','evid','text');
+      field('证据位置（章节 / 页码）','loc','text');
+      field('批准人（含批准日期）','sign','text');
+      field('备注','note','text');
+
+      body.appendChild(grid);
+      row.appendChild(body);
+      main.appendChild(row);
+    });
+
+    if(filterGap && !main.children.length){
+      main.innerHTML='<div class="row"><div class="rh"><div class="rtitle"><b>没有缺口与未填项</b><em>全部条款已判定</em></div></div></div>';
+    }
+  }
+
+  function exportCSV(){
+    var L=['条款号,章节,主题,英文标题,适用性,不适用理由,符合性方法,引用标准/规范,证据文件编号,证据位置,符合性结论,跟进人,批准人/日期,条款原文,备注'];
+    var AP={yes:'适用',part:'部分适用',na:'不适用'};
+    var ME={std:'协调标准',cs:'通用规范',other:'其他方法（需说明依据）',none:'尚未确定'};
+    var VE={ok:'符合',part:'部分符合',gap:'不符合（待整改）'};
+    // Neutralise leading characters Excel would evaluate (CSV injection, OWASP).
+    function q(v){
+      var t=String(v==null?'':v);
+      if(/^[=+\-@\t\r]/.test(t)) t="'"+t;
+      return '"'+t.replace(/"/g,'""')+'"';
+    }
+    DATA.forEach(function(d){
+      var s=state[d.no];
+      L.push([d.no,q(d.ch),q(d.zh),q(d.en),q(AP[s.app]||''),q(s.reason||''),q(ME[s.method]||''),q(s.std||''),q(s.evid||''),q(s.loc||''),q(VE[s.verdict]||''),q(s.owner||''),q(s.sign||''),q(s.ref||''),q(s.note||'')].join(','));
+    });
+    var blob=new Blob(['\uFEFF'+L.join('\n')],{type:'text/csv;charset=utf-8;'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='GSPR条款对照清单-'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); },1500);
+  }
+
+  document.getElementById('demo').addEventListener('click',function(){
+    var filled=DATA.filter(function(d){ return state[d.no] && (state[d.no].app||state[d.no].verdict||state[d.no].evid); }).length;
+    if(filled>0 && !confirm('载入示例会覆盖第 1、2、9 条已填内容（其他条不受影响），示例数据也会保存到本机。继续？')) return;
+    state[1]=Object.assign({},state[1],{
+      app:'yes',verdict:'ok',method:'std',
+      std:'ISO 14971:2019（示例占位）',evid:'TF-01 风险管理文档',loc:'§4.2 / p.18',
+      owner:'示例',sign:'示例 2026-10-21',
+      ref:'（示例占位——请替换为你从 EUR-Lex 复制的 Annex I 第 1 条原文）',
+      note:'演示：适用 + 协调标准 + 证据给到章节页码'
+    });
+    state[2]=Object.assign({},state[2],{
+      app:'yes',verdict:'gap',method:'none',
+      note:'演示：这一条是该产品真实的缺口，需要补证据'
+    });
+    state[9]=Object.assign({},state[9],{
+      app:'na',reason:'',
+      note:'演示：第 9 条只适用附录 XVI 产品；这里选了不适用但理由空着，所以整行标红'
+    });
+    openRows[1]=openRows[2]=openRows[9]=true;
+    render(); save();
+  });
+
+  document.getElementById('filter').addEventListener('click',function(){
+    filterGap=!filterGap;
+    this.classList.toggle('on',filterGap);
+    this.textContent=filterGap?'显示全部':'只看缺口与未填';
+    render();
+  });
+  document.getElementById('expand').addEventListener('click',function(){
+    var rows=main.querySelectorAll('.row');
+    var anyClosed=false;
+    for(var i=0;i<rows.length;i++){ if(!rows[i].classList.contains('open')) { anyClosed=true; break; } }
+    for(var j=0;j<rows.length;j++){ rows[j].classList.toggle('open',anyClosed); }
+    this.textContent=anyClosed?'全部收起':'全部展开';
+  });
+  document.getElementById('export').addEventListener('click',exportCSV);
+  document.getElementById('reset').addEventListener('click',function(){
+    if(!confirm('清空所有填写内容？此操作不可撤销。')) return;
+    DATA.forEach(function(d){ state[d.no]={app:'',reason:'',method:'',std:'',evid:'',loc:'',verdict:'',owner:'',note:''}; });
+    save(); render();
+  });
+
+  load();
+  render();
+})();
+</script>
+
+</body>
+</html>
