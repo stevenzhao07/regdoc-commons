@@ -1,6 +1,6 @@
 # regdoc-commons
 
-Four single-file HTML tools for people who have to produce medical device regulatory documentation. Open one in a browser and it works — no install, no build, no network, no account.
+Four single-file HTML tools and one Excel template for people who have to produce medical device regulatory documentation. Open one in a browser and it works — no install, no build, no network, no account.
 
 > **Not regulatory advice.** This repository provides structure, not conclusions. Every determination about a device's compliance must be made and signed by the manufacturer's qualified personnel. Nothing here guarantees, predicts, or substitutes for a regulatory decision.
 
@@ -29,6 +29,20 @@ Four single-file HTML tools for people who have to produce medical device regula
 | **[Glossary](tools/glossary.html)** | A translated term reads fine but you are not sure it is right | 98 Chinese–English pairs across 7 groups, with 13 marked as high-risk — the ones that read plausibly and cause rework | Certify a translation |
 
 The consistency check and deficiency triage keep the original row next to each finding, and the deficiency tool keeps each item's original number as written in the letter.
+
+## Excel template
+
+**`templates/MDR-GSPR对照表-v1.2.xlsx`** — the same GSPR matrix as a workbook, for people who have to circulate a file rather than open a browser tab.
+
+Five sheets: notes, the 23-row matrix, a self-check count, five worked examples, and a file-control/sign-off page. Fifteen columns, three of them dropdown-constrained. Choosing "not applicable" without writing a reason turns the cell red; a point 9 row marked applicable turns yellow until you confirm Annex XVI does not apply.
+
+Two things it does that a paper checklist cannot:
+
+- **It counts, it does not judge.** The self-check page reports five mechanical gaps (unfilled, missing reason, gap, no conclusion, no controlled-document ID). It does not say "ready to submit" — that phrasing was deliberately removed. Whether and when to submit is a signature, not a formula.
+- **Point 1–9 column D is empty, on purpose.** Chapter I of Annex I carries no point headings in the legal text. Rather than invent them, the column is blank — the blank is the statement. Points 10–23 carry the official section headings verbatim.
+
+Requires Excel or WPS to display the counts; web preview shows zeros because the file stores formulas, not cached results.
+
 
 ## Why these four
 
